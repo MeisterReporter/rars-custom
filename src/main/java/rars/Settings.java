@@ -158,7 +158,13 @@ public class Settings extends Observable {
          * Flag to determine whether to calculate relative paths from the current working directory
          * or from the RARS executable path.
         */
-        DERIVE_CURRENT_WORKING_DIRECTORY("DeriveCurrentWorkingDirectory", false);
+        DERIVE_CURRENT_WORKING_DIRECTORY("DeriveCurrentWorkingDirectory", false),
+
+        FOLLOW_SYSTEM_PREFERENCES("FollowSystemPreferences", true),
+        FOLLOW_SYSTEM_THEME("FollowSystemTheme", true),
+        FOLLOW_SYSTEM_ACCENT_COLOR("FollowSystemAccentColor", true),
+        FOLLOW_SYSTEM_SELECTION_COLOR("FollowSystemSelectionColor", true),
+        FOLLOW_SYSTEM_FONT_SIZE("FollowSystemFontSize", true);
 
         // TODO: add option for turning off user trap handling and interrupts
         private String name;
@@ -210,8 +216,11 @@ public class Settings extends Observable {
      * Number of letters to be matched by editor's instruction guide before popup generated (if popup enabled)
      */
     public static final int EDITOR_POPUP_PREFIX_LENGTH = 6;
+
+    public static final int THEME = 7;
+    public static final int CUSTOM_THEME = 8;
     // Match the above by position.
-    private static final String[] stringSettingsKeys = {"ExceptionHandler", "TextColumnOrder", "LabelSortState", "MemoryConfiguration", "CaretBlinkRate", "EditorTabSize", "EditorPopupPrefixLength"};
+    private static final String[] stringSettingsKeys = {"ExceptionHandler", "TextColumnOrder", "LabelSortState", "MemoryConfiguration", "CaretBlinkRate", "EditorTabSize", "EditorPopupPrefixLength", "Theme", "CustomTheme"};
 
     /**
      * Last resort default values for String settings;
@@ -219,7 +228,7 @@ public class Settings extends Observable {
      * If you wish to change, do so before instantiating the Settings object.
      * Must match key by list position.
      */
-    private static String[] defaultStringSettingsValues = {"", "0 1 2 3 4", "0", "", "500", "8", "2"};
+    private static String[] defaultStringSettingsValues = {"", "0 1 2 3 4", "0", "", "500", "8", "2", "Metal", ""};
 
 
     // FONT SETTINGS.  Each array position has associated name.
@@ -252,17 +261,19 @@ public class Settings extends Observable {
      */
     public static final int REGISTER_HIGHLIGHT_FONT = 6;
 
+    public static final int FONT = 7;
+
     private static final String[] fontFamilySettingsKeys = {"EditorFontFamily", "EvenRowFontFamily",
             "OddRowFontFamily", " TextSegmentHighlightFontFamily", "TextSegmentDelayslotHighightFontFamily",
-            "DataSegmentHighlightFontFamily", "RegisterHighlightFontFamily"
+            "DataSegmentHighlightFontFamily", "RegisterHighlightFontFamily", "Font"
     };
     private static final String[] fontStyleSettingsKeys = {"EditorFontStyle", "EvenRowFontStyle",
             "OddRowFontStyle", " TextSegmentHighlightFontStyle", "TextSegmentDelayslotHighightFontStyle",
-            "DataSegmentHighlightFontStyle", "RegisterHighlightFontStyle"
+            "DataSegmentHighlightFontStyle", "RegisterHighlightFontStyle", "Font"
     };
     private static final String[] fontSizeSettingsKeys = {"EditorFontSize", "EvenRowFontSize",
             "OddRowFontSize", " TextSegmentHighlightFontSize", "TextSegmentDelayslotHighightFontSize",
-            "DataSegmentHighlightFontSize", "RegisterHighlightFontSize"
+            "DataSegmentHighlightFontSize", "RegisterHighlightFontSize", "Font"
     };
 
 
@@ -278,12 +289,12 @@ public class Settings extends Observable {
     // correctly rendering the left parenthesis character in the editor or text segment display.
     // See http://www.mirthcorp.com/community/issues/browse/MIRTH-1921?page=com.atlassian.jira.plugin.system.issuetabpanels:all-tabpanel
     private static final String[] defaultFontFamilySettingsValues = {"Monospaced", "Monospaced", "Monospaced",
-            "Monospaced", "Monospaced", "Monospaced", "Monospaced"
+            "Monospaced", "Monospaced", "Monospaced", "Monospaced", "Monospaced"
     };
     private static final String[] defaultFontStyleSettingsValues = {"Plain", "Plain", "Plain", "Plain",
-            "Plain", "Plain", "Plain"
+            "Plain", "Plain", "Plain", "Plain"
     };
-    private static final String[] defaultFontSizeSettingsValues = {"12", "12", "12", "12", "12", "12", "12",
+    private static final String[] defaultFontSizeSettingsValues = {"12", "12", "12", "12", "12", "12", "12", "12"
     };
 
 
@@ -357,6 +368,9 @@ public class Settings extends Observable {
      */
     public static final int EDITOR_CARET_COLOR = 16;
 
+    public static final int ACCENT_COLOR = 17;
+    public static final int SELECTION_COLOR = 18;
+
     public enum ColorMode {
         DEFAULT("DEF"),
         SYSTEM("SYS"),
@@ -373,7 +387,8 @@ public class Settings extends Observable {
             "TextSegmentDelaySlotHighlightBackground", "TextSegmentDelaySlotHighlightForeground",
             "DataSegmentHighlightBackground", "DataSegmentHighlightForeground",
             "RegisterHighlightBackground", "RegisterHighlightForeground",
-            "EditorBackground", "EditorForeground", "EditorLineHighlight", "EditorSelection", "EditorCaretColor"};
+            "EditorBackground", "EditorForeground", "EditorLineHighlight", "EditorSelection", "EditorCaretColor",
+            "AccentColor", "SelectionColor"};
     /**
      * Last resort default values for color settings;
      * will use only if neither the Preferences nor the properties file work.
@@ -381,7 +396,7 @@ public class Settings extends Observable {
      * Must match key by list position.
      */
     private static String[] defaultColorSettingsValues = {
-            "0x00e0e0e0", "0", "0x00ffffff", "0", "0x00ffff99", "0", "0x0033ff00", "0", "0x0099ccff", "0", "0x0099cc55", "0", "0x00ffffff", "0x00000000", "0x00eeeeee", "0x00ccccff", "0x00000000"};
+            "0x00e0e0e0", "0", "0x00ffffff", "0", "0x00ffff99", "0", "0x0033ff00", "0", "0x0099ccff", "0", "0x0099cc55", "0", "0x00ffffff", "0x00000000", "0x00eeeeee", "0x00ccccff", "0x00000000", "0x00146adb", "0x00bfbfbf"};
 
     interface SystemColorProvider { Color getColor();}
     private SystemColorProvider[] systemColors;
@@ -958,6 +973,22 @@ public class Settings extends Observable {
      */
     public ColorMode getDefaultColorMode() {
         return defaultColorMode;
+    }
+
+    public void setTheme(String theme) {
+        setStringSetting(THEME, theme);
+    }
+
+    public String getTheme() {
+        return preferences.get(stringSettingsKeys[THEME], defaultStringSettingsValues[THEME]);
+    }
+
+    public void setCustomTheme(String theme) {
+        setStringSetting(CUSTOM_THEME, theme);
+    }
+
+    public String getCustomTheme() {
+        return preferences.get(stringSettingsKeys[CUSTOM_THEME], defaultStringSettingsValues[CUSTOM_THEME]);
     }
 
     /////////////////////////////////////////////////////////////////////////

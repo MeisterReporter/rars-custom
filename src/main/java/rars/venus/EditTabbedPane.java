@@ -12,12 +12,19 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Objects;
 
 	/*
 Copyright (c) 2003-2010,  Pete Sanderson and Kenneth Vollmar
@@ -48,9 +55,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 /**
- * Tabbed pane for the editor.  Each of its tabs represents an open file.
+ * Tabbed pane for the editor. Each of its tabs represents an open file. This version supports direct close via a button
+ * on the tab. It also supports reordering of tabs via drag and drop.
  *
- * @author Sanderson
+ * @author Sanderson, Meister Reporter for modifying the tabs
  **/
 
 public class EditTabbedPane extends JTabbedPane {
@@ -60,6 +68,12 @@ public class EditTabbedPane extends JTabbedPane {
     private VenusUI mainUI;
     private Editor editor;
     private FileOpener fileOpener;
+
+    // Dragging Functionality
+    private boolean dragging = false;
+    private Image tabImage = null;
+    private Point currentMouseLocation = null;
+    private int draggedTabIndex = 0;
 
     /**
      * Constructor for the EditTabbedPane class.
@@ -72,23 +86,75 @@ public class EditTabbedPane extends JTabbedPane {
         this.fileOpener = new FileOpener(editor);
         this.mainPane = mainPane;
         this.editor.setEditTabbedPane(this);
-        this.addChangeListener(
-                new ChangeListener() {
-                    public void stateChanged(ChangeEvent e) {
-                        EditPane editPane = (EditPane) getSelectedComponent();
-                        if (editPane != null) {
-                            // New IF statement to permit free traversal of edit panes w/o invalidating
-                            // assembly if assemble-all is selected.  DPS 9-Aug-2011
-                            if (Globals.getSettings().getBooleanSetting(Settings.Bool.ASSEMBLE_ALL)) {
-                                EditTabbedPane.this.updateTitles(editPane);
-                            } else {
-                                EditTabbedPane.this.updateTitlesAndMenuState(editPane);
-                                EditTabbedPane.this.mainPane.getExecutePane().clearPane();
-                            }
-                            editPane.tellEditingComponentToRequestFocusInWindow();
-                        }
+        this.addChangeListener(e -> {
+            EditPane editPane = (EditPane) getSelectedComponent();
+            if (editPane != null) {
+                // New IF statement to permit free traversal of edit panes w/o invalidating
+                // assembly if assemble-all is selected.  DPS 9-Aug-2011
+                if (Globals.getSettings().getBooleanSetting(Settings.Bool.ASSEMBLE_ALL)) {
+                    EditTabbedPane.this.updateTitles(editPane);
+                } else {
+                    EditTabbedPane.this.updateTitlesAndMenuState(editPane);
+                    EditTabbedPane.this.mainPane.getExecutePane().clearPane();
+                }
+                editPane.tellEditingComponentToRequestFocusInWindow();
+            }
+        });
+        this.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                if(!dragging) {
+                    int tabNumber = getUI().tabForCoordinate(EditTabbedPane.this, e.getX(), e.getY());
+                    if(tabNumber >= 0) {
+                        draggedTabIndex = tabNumber;
+                        Rectangle bounds = getUI().getTabBounds(EditTabbedPane.this, tabNumber);
+
+                        // Paint the tabbed pane to an image
+                        Image totalImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_ARGB);
+                        Graphics totalGraphics = totalImage.getGraphics();
+                        totalGraphics.setClip(bounds);
+                        setDoubleBuffered(false);
+                        paintComponent(totalGraphics);
+
+                        // Paint the dragged tab into the buffer
+                        tabImage = new BufferedImage(bounds.width, bounds.height, BufferedImage.TYPE_INT_ARGB);
+                        Graphics graphics = tabImage.getGraphics();
+                        graphics.drawImage(totalImage, 0, 0, bounds.width, bounds.height, bounds.x, bounds.y,
+                                bounds.x + bounds.width, bounds.y + bounds.height, EditTabbedPane.this);
+
+                        dragging = true;
+                        repaint();
                     }
-                });
+                } else {
+                    // Capture the mouse location and repaint (required)
+                    currentMouseLocation = e.getPoint();
+                    repaint();
+                }
+                super.mouseDragged(e);
+            }
+        });
+        addMouseListener(new MouseAdapter() {
+            public void mouseReleased(MouseEvent e) {
+                if(dragging) {
+                    int tabNumber = getUI().tabForCoordinate(EditTabbedPane.this, e.getX(), 10);
+
+                    if(tabNumber >= 0) {
+                        // Got old tab info
+                        Component comp = getComponentAt(draggedTabIndex);
+                        String title = getTitleAt(draggedTabIndex);
+                        // Move the Tab
+                        removeTabAt(draggedTabIndex);
+                        insertTab(title, null, comp, null, tabNumber);
+                        // Select the tab at the new position
+                        setSelectedIndex(tabNumber);
+                    }
+                }
+                dragging = false;
+                tabImage = null;
+                // Repaint to fix a visual glitch: The dragged tab image didn't disappear immediately
+                repaint();
+            }
+        });
     }
 
     /**
@@ -536,6 +602,37 @@ public class EditTabbedPane extends JTabbedPane {
                 JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
     }
 
+    @Override
+    public void setTitleAt(int index, String title) {
+        JPanel tab = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        tab.setOpaque(false);
+        tab.add(new JLabel(title));
+        JButton button = new JButton(new ImageIcon(Objects.requireNonNull(this.getClass().getResource(Globals.imagesPath + "close.png"))));
+        button.setMargin(new Insets(4, 4, 4, 4));
+        button.setPreferredSize(new Dimension(32, 32));
+        button.addActionListener(e -> {
+            setSelectedIndex(index);
+            closeCurrentFile();
+        });
+        tab.add(button);
+        setTabComponentAt(index, tab);
+    }
+
+    @Override
+    public void insertTab(String title, Icon icon, Component component, String tip, int index) {
+        super.insertTab(title, icon, component, tip, index);
+        setTitleAt(index, title);
+    }
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        // Paint the dragged tab image
+        if(dragging && currentMouseLocation != null && tabImage != null) {
+            g.drawImage(tabImage, currentMouseLocation.x, currentMouseLocation.y, this);
+        }
+    }
 
     private class FileOpener {
         private File mostRecentlyOpenedFile;
@@ -592,7 +689,7 @@ public class EditTabbedPane extends JTabbedPane {
             }
             return true;
         }
-      
+
        /*
         * Open the specified file.  Return true if file opened, false otherwise
         */

@@ -1,5 +1,11 @@
 package rars.venus;
 
+import com.github.weisj.darklaf.LafManager;
+import com.github.weisj.darklaf.settings.ThemeSettings;
+import com.github.weisj.darklaf.theme.Theme;
+import com.github.weisj.darklaf.theme.event.ThemePreferenceChangeEvent;
+import com.github.weisj.darklaf.theme.spec.AccentColorRule;
+import com.github.weisj.darklaf.theme.spec.FontSizeRule;
 import rars.Globals;
 import rars.Settings;
 import rars.riscv.InstructionSet;
@@ -17,6 +23,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 /*
 Copyright (c) 2003-2013,  Pete Sanderson and Kenneth Vollmar
@@ -49,7 +56,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /**
  * Top level container for Venus GUI.
  *
- * @author Sanderson and Team JSpim
+ * @author Sanderson and Team JSpim, Theme Menu added by Meister Reporter
  **/
 
 	  /* Heavily modified by Pete Sanderson, July 2004, to incorporate JSPIMMenu and JSPIMToolbar
@@ -70,6 +77,13 @@ public class VenusUI extends JFrame {
     private JSplitPane splitter, horizonSplitter;
     JPanel north;
 
+    // Themes
+    private static String THEME = "";
+    private List<UIManager.LookAndFeelInfo> installedThemes = new ArrayList<>();
+    private List<String> installedThemeNames = new ArrayList<>();
+    private List<JRadioButtonMenuItem> themeMenus = new ArrayList<>();
+    private String customThemeName = "Custom";
+
     private int frameState; // see windowActivated() and windowDeactivated()
     private static int menuState = FileStatus.NO_FILE;
 
@@ -79,14 +93,14 @@ public class VenusUI extends JFrame {
     Editor editor;
 
     // components of the menubar
-    private JMenu file, run, window, help, edit, settings;
+    private JMenu file, run, window, help, edit, settings, settingsThemeSelect;
     private JMenuItem fileNew, fileOpen, fileClose, fileCloseAll, fileSave, fileSaveAs, fileSaveAll, fileDumpMemory, fileExit;
     private JMenuItem editUndo, editRedo, editCut, editCopy, editPaste, editFindReplace, editSelectAll;
     private JMenuItem runGo, runStep, runBackstep, runReset, runAssemble, runStop, runPause, runClearBreakpoints, runToggleBreakpoints;
     private JCheckBoxMenuItem settingsLabel, settingsPopupInput, settingsValueDisplayBase, settingsAddressDisplayBase,
             settingsExtended, settingsAssembleOnOpen, settingsAssembleAll, settingsAssembleOpen, settingsWarningsAreErrors,
             settingsStartAtMain, settingsProgramArguments, settingsSelfModifyingCode, settingsRV64, settingsDeriveCurrentWorkingDirectory;
-    private JMenuItem settingsExceptionHandler, settingsEditor, settingsHighlighting, settingsMemoryConfiguration;
+    private JMenuItem settingsExceptionHandler, settingsEditor, settingsHighlighting, settingsMemoryConfiguration, settingsTheme;
     private JMenuItem helpHelp, helpAbout;
 
     // components of the toolbar
@@ -123,6 +137,9 @@ public class VenusUI extends JFrame {
 
     public VenusUI(String name, ArrayList<String> paths) {
         super(name);
+        THEME = Globals.getSettings().getTheme();
+        registerLookAndFeels();
+        loadLookAndFeels();
         mainUI = this;
         Globals.setGui(this);
         this.editor = new Editor(this);
@@ -647,6 +664,45 @@ public class VenusUI extends JFrame {
         settingsHighlighting = new JMenuItem(settingsHighlightingAction);
         settingsExceptionHandler = new JMenuItem(settingsExceptionHandlerAction);
         settingsMemoryConfiguration = new JMenuItem(settingsMemoryConfigurationAction);
+        settingsThemeSelect = new JMenu("Themes");
+        for (String name : installedThemeNames) {
+            boolean selected = name.equals(THEME);
+            JRadioButtonMenuItem item = new JRadioButtonMenuItem(name, selected);
+            item.addActionListener(event -> {
+                item.setSelected(true);
+                try {
+                    for (UIManager.LookAndFeelInfo info : installedThemes) {
+                        if (info.getName().equals(name)) {
+                            THEME = name;
+                            if (!THEME.equalsIgnoreCase(customThemeName)) {
+                                UIManager.setLookAndFeel(info.getClassName());
+                            } else {
+                                LafManager.installTheme(LafManager.getPreferredThemeStyle());
+                                handleThemeSettings();
+                            }
+                            for (JRadioButtonMenuItem radio : themeMenus) {
+                                if (radio.isSelected() && !radio.getText().equalsIgnoreCase(name)) {
+                                    radio.setSelected(false);
+                                }
+                            }
+                            Globals.getSettings().setTheme(THEME);
+                        }
+                    }
+                    SwingUtilities.updateComponentTreeUI(VenusUI.this);
+                } catch (Exception e) {
+                    System.out.println("Could not enable Theme " + e);
+                    e.printStackTrace();
+                }
+            });
+            themeMenus.add(item);
+            settingsThemeSelect.add(item);
+        }
+        settingsTheme = new JMenuItem("Customize Theme");
+        settingsTheme.addActionListener(e -> {
+            if (THEME.equals(customThemeName)) {
+                ThemeSettings.showSettingsDialog(this);
+            }
+        });
 
         settings.add(settingsLabel);
         settings.add(settingsProgramArguments);
@@ -669,6 +725,8 @@ public class VenusUI extends JFrame {
         settings.add(settingsHighlighting);
         settings.add(settingsExceptionHandler);
         settings.add(settingsMemoryConfiguration);
+        settings.add(settingsThemeSelect);
+        settings.add(settingsTheme);
 
         helpHelp = new JMenuItem(helpHelpAction);
         helpHelp.setIcon(loadIcon("Help16.png"));//"Help16.gif"));
@@ -772,6 +830,131 @@ public class VenusUI extends JFrame {
         return toolBar;
     }
 
+    private void registerLookAndFeels() {
+        installTheme(new LookAndFeel() {
+            @Override
+            public String getName() {
+                return customThemeName;
+            }
+
+            @Override
+            public String getID() {
+                return "sys-preferred";
+            }
+
+            @Override
+            public String getDescription() {
+                return "Using a theme that gets native properties of the system";
+            }
+
+            @Override
+            public boolean isNativeLookAndFeel() {
+                return false;
+            }
+
+            @Override
+            public boolean isSupportedLookAndFeel() {
+                return true;
+            }
+        });
+    }
+
+    private boolean installTheme(LookAndFeel theme) {
+        try {
+            UIManager.LookAndFeelInfo info = new UIManager.LookAndFeelInfo(theme.getName(), theme.getClass().getName());
+            UIManager.installLookAndFeel(info);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void loadLookAndFeels() {
+        try {
+            installedThemes.clear();
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                installedThemes.add(info);
+                installedThemeNames.add(info.getName());
+                if (THEME.equals(info.getName())) {
+                    if (!THEME.equalsIgnoreCase(customThemeName)) {
+                        UIManager.setLookAndFeel(info.getClassName());
+                    } else {
+                        LafManager.installTheme(LafManager.getPreferredThemeStyle());
+                        handleThemeSettings();
+                        LafManager.enabledPreferenceChangeReporting(true);
+                        LafManager.addThemePreferenceChangeListener(this::customThemePrefsChanged);
+                    }
+                    System.out.println("Current Theme is " + info.getName());
+                }
+            }
+            System.out.println("Installed Themes: " + installedThemeNames.toString());
+            if (!UIManager.getLookAndFeel().getName().equals(THEME) && !THEME.equals(customThemeName)) {
+                System.out.println(THEME + " is not available, Current Theme: " + UIManager.getLookAndFeel().getName());
+            } else if (THEME.equals(customThemeName)) {
+                System.out.println("The automatic Theme selected " + UIManager.getLookAndFeel().getName()
+                        + " to fit the best");
+            }
+            /*for (JRadioButtonMenuItem radio : themeMenus) {
+                radio.setSelected(radio.getText().equalsIgnoreCase(THEME));
+            }*/
+        } catch (Exception e) {
+            System.out.println("Error while loading Theme " + THEME);
+            e.printStackTrace();
+        }
+    }
+
+    private void handleThemeSettings() {
+        ThemeSettings themeSettings = ThemeSettings.getInstance();
+        // Values
+        String themeName = Globals.getSettings().getCustomTheme();
+        Color accentColor = Globals.getSettings().getColorSettingByPosition(Settings.ACCENT_COLOR);
+        Color selectionColor = Globals.getSettings().getColorSettingByPosition(Settings.SELECTION_COLOR);
+        int fontSizePercentage = Globals.getSettings().getFontByPosition(Settings.FONT).getSize();
+        boolean followSystemPreferences = Globals.getSettings().getBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_PREFERENCES);
+        boolean followSystemTheme = Globals.getSettings().getBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_THEME);
+        boolean followSystemAccentColor = Globals.getSettings().getBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_ACCENT_COLOR);
+        boolean followSystemSelectionColor = Globals.getSettings().getBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_SELECTION_COLOR);
+        boolean followSystemFontSize = Globals.getSettings().getBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_FONT_SIZE);
+        // General
+        Theme selectedTheme = LafManager.getTheme();
+        for (Theme theme : LafManager.getRegisteredThemes()) {
+            if (theme.getName().equals(themeName)) {
+                selectedTheme = theme;
+            }
+        }
+        // System
+        themeSettings.setSystemPreferencesEnabled(followSystemPreferences);
+        themeSettings.setThemeFollowsSystem(followSystemTheme);
+        themeSettings.setAccentColorFollowsSystem(followSystemAccentColor);
+        themeSettings.setSelectionColorFollowsSystem(followSystemSelectionColor);
+        themeSettings.setFontSizeFollowsSystem(followSystemFontSize);
+        // General
+        if (!followSystemTheme)
+            themeSettings.setTheme(selectedTheme);
+        if (!followSystemAccentColor)
+            themeSettings.setAccentColorRule(
+                    AccentColorRule.fromColor(accentColor, themeSettings.getAccentColorRule().getSelectionColor()));
+        if (!followSystemSelectionColor)
+            themeSettings.setAccentColorRule(
+                    AccentColorRule.fromColor(themeSettings.getAccentColorRule().getAccentColor(), selectionColor));
+        if (!followSystemFontSize)
+            themeSettings.setFontSizeRule(FontSizeRule.relativeAdjustment(fontSizePercentage));
+
+        themeSettings.apply();
+    }
+
+    private void customThemePrefsChanged(final ThemePreferenceChangeEvent e) {
+        ThemeSettings themeSettings = ThemeSettings.getInstance();
+        Globals.getSettings().setCustomTheme(themeSettings.getTheme().getName());
+        Globals.getSettings().setColorSettingByPosition(Settings.ACCENT_COLOR, themeSettings.getAccentColorRule().getAccentColor());
+        Globals.getSettings().setColorSettingByPosition(Settings.SELECTION_COLOR, themeSettings.getAccentColorRule().getSelectionColor());
+        Globals.getSettings().setFontByPosition(Settings.FONT, new Font("Monospace", Font.PLAIN, themeSettings.getFontSizeRule().getPercentage()));
+        Globals.getSettings().setBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_PREFERENCES, themeSettings.isSystemPreferencesEnabled());
+        Globals.getSettings().setBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_THEME, themeSettings.isThemeFollowsSystem());
+        Globals.getSettings().setBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_ACCENT_COLOR, themeSettings.isAccentColorFollowsSystem());
+        Globals.getSettings().setBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_SELECTION_COLOR, themeSettings.isSelectionColorFollowsSystem());
+        Globals.getSettings().setBooleanSetting(Settings.Bool.FOLLOW_SYSTEM_FONT_SIZE, themeSettings.isFontSizeFollowsSystem());
+    }
 
     /* Determine from FileStatus what the menu state (enabled/disabled)should 
      * be then call the appropriate method to set it.  Current states are:
