@@ -1,14 +1,22 @@
 package rars.simulator;
 
-import rars.*;
-import rars.riscv.hardware.*;
+import rars.BreakpointException;
+import rars.ExitingException;
+import rars.Globals;
+import rars.ProgramStatement;
+import rars.SimulationException;
+import rars.WaitException;
 import rars.riscv.BasicInstruction;
 import rars.riscv.Instruction;
+import rars.riscv.hardware.AddressErrorException;
+import rars.riscv.hardware.ControlAndStatusRegisterFile;
+import rars.riscv.hardware.InterruptController;
+import rars.riscv.hardware.RegisterFile;
 import rars.util.Binary;
 import rars.util.SystemIO;
 import rars.venus.run.RunSpeedPanel;
 
-import javax.swing.*;
+import javax.swing.SwingUtilities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Observable;

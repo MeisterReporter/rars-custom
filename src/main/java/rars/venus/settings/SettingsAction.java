@@ -4,7 +4,7 @@ import rars.Globals;
 import rars.Settings;
 import rars.venus.GuiAction;
 
-import javax.swing.*;
+import javax.swing.JCheckBoxMenuItem;
 import java.awt.event.ActionEvent;
 
 /*

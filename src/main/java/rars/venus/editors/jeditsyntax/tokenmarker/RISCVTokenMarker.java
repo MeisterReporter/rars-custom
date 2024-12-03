@@ -13,10 +13,10 @@ import rars.Globals;
 import rars.Settings;
 import rars.assembler.Directives;
 import rars.riscv.BasicInstruction;
+import rars.riscv.Instruction;
 import rars.riscv.hardware.FloatingPointRegisterFile;
 import rars.riscv.hardware.Register;
 import rars.riscv.hardware.RegisterFile;
-import rars.riscv.Instruction;
 import rars.venus.editors.jeditsyntax.KeywordMap;
 import rars.venus.editors.jeditsyntax.PopupHelpItem;
 

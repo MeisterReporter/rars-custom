@@ -2,7 +2,7 @@ package rars.venus.registers;
 
 import rars.venus.VenusUI;
 
-import javax.swing.*;
+import javax.swing.JTabbedPane;
 import java.awt.Color;
 
 /*

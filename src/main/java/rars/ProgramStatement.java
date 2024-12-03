@@ -4,13 +4,13 @@ import rars.assembler.SymbolTable;
 import rars.assembler.Token;
 import rars.assembler.TokenList;
 import rars.assembler.TokenTypes;
+import rars.riscv.BasicInstruction;
+import rars.riscv.BasicInstructionFormat;
+import rars.riscv.Instruction;
 import rars.riscv.hardware.ControlAndStatusRegisterFile;
 import rars.riscv.hardware.FloatingPointRegisterFile;
 import rars.riscv.hardware.Register;
 import rars.riscv.hardware.RegisterFile;
-import rars.riscv.BasicInstruction;
-import rars.riscv.BasicInstructionFormat;
-import rars.riscv.Instruction;
 import rars.util.Binary;
 import rars.venus.NumberDisplayBaseChooser;
 

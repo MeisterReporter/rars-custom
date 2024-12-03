@@ -28,10 +28,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package rars.tools;
 
 import rars.ProgramStatement;
-import rars.riscv.hardware.*;
+import rars.riscv.hardware.AccessNotice;
+import rars.riscv.hardware.AddressErrorException;
+import rars.riscv.hardware.Memory;
+import rars.riscv.hardware.MemoryAccessNotice;
+import rars.riscv.hardware.RegisterFile;
 import rars.riscv.instructions.Branch;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Observable;

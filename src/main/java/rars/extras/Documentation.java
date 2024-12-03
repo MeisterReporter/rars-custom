@@ -3,7 +3,12 @@ package rars.extras;
 import rars.Globals;
 import rars.Settings;
 import rars.assembler.Directives;
-import rars.riscv.*;
+import rars.riscv.AbstractSyscall;
+import rars.riscv.BasicInstruction;
+import rars.riscv.ExtendedInstruction;
+import rars.riscv.Instruction;
+import rars.riscv.InstructionSet;
+import rars.riscv.SyscallLoader;
 
 import java.util.ArrayList;
 import java.util.Collections;

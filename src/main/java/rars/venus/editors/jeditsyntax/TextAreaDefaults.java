@@ -11,8 +11,8 @@ package rars.venus.editors.jeditsyntax;
 
 import rars.Settings;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JPopupMenu;
+import java.awt.Color;
 
 /**
  * Encapsulates default settings for a text area. This can be passed

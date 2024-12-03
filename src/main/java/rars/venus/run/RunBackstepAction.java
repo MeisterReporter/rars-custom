@@ -10,7 +10,10 @@ import rars.venus.FileStatus;
 import rars.venus.GuiAction;
 import rars.venus.VenusUI;
 
-import javax.swing.*;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
 
 	/*

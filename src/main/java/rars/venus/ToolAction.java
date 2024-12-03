@@ -2,7 +2,7 @@ package rars.venus;
 
 import rars.tools.Tool;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
 import java.awt.event.ActionEvent;
 
 	/*

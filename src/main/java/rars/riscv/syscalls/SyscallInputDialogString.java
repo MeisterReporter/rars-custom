@@ -3,11 +3,11 @@ package rars.riscv.syscalls;
 import rars.ExitingException;
 import rars.Globals;
 import rars.ProgramStatement;
+import rars.riscv.AbstractSyscall;
 import rars.riscv.hardware.AddressErrorException;
 import rars.riscv.hardware.RegisterFile;
-import rars.riscv.AbstractSyscall;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 import java.nio.charset.StandardCharsets;
 
 /*

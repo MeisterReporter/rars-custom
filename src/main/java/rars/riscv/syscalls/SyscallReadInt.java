@@ -1,7 +1,6 @@
 package rars.riscv.syscalls;
 
 import rars.ExitingException;
-import rars.Globals;
 import rars.ProgramStatement;
 import rars.riscv.AbstractSyscall;
 import rars.riscv.hardware.RegisterFile;

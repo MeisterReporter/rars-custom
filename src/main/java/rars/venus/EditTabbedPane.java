@@ -7,13 +7,25 @@ import rars.Settings;
 import rars.riscv.hardware.RegisterFile;
 import rars.util.FilenameFinder;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileFilter;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -24,7 +36,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Objects;
 
 	/*
 Copyright (c) 2003-2010,  Pete Sanderson and Kenneth Vollmar
@@ -58,7 +69,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Tabbed pane for the editor. Each of its tabs represents an open file. This version supports direct close via a button
  * on the tab. It also supports reordering of tabs via drag and drop.
  *
- * @author Sanderson, Meister Reporter for modifying the tabs
+ * @author Sanderson, Meister Reporter for better tabs and multi file opening
  **/
 
 public class EditTabbedPane extends JTabbedPane {
@@ -126,6 +137,7 @@ public class EditTabbedPane extends JTabbedPane {
                         repaint();
                     }
                 } else {
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                     // Capture the mouse location and repaint (required)
                     currentMouseLocation = e.getPoint();
                     repaint();
@@ -148,6 +160,8 @@ public class EditTabbedPane extends JTabbedPane {
                         // Select the tab at the new position
                         setSelectedIndex(tabNumber);
                     }
+
+                    setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 }
                 dragging = false;
                 tabImage = null;
@@ -602,17 +616,30 @@ public class EditTabbedPane extends JTabbedPane {
                 JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
     }
 
+    private void refreshTabTitles() {
+        for (int i = 0; i < getTabCount(); i++) {
+            setTitleAt(i, getTitleAt(i));
+        }
+    }
+
+    private ImageIcon loadIcon(String name) {
+        return new ImageIcon(Toolkit.getDefaultToolkit().getImage(this.getClass().getResource(Globals.imagesPath + name)));
+    }
+
     @Override
     public void setTitleAt(int index, String title) {
         JPanel tab = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         tab.setOpaque(false);
         tab.add(new JLabel(title));
-        JButton button = new JButton(new ImageIcon(Objects.requireNonNull(this.getClass().getResource(Globals.imagesPath + "close.png"))));
+        JButton button;
+        ImageIcon closeIcon = loadIcon("Close.png");
+        button = new JButton(closeIcon);
         button.setMargin(new Insets(4, 4, 4, 4));
         button.setPreferredSize(new Dimension(32, 32));
         button.addActionListener(e -> {
             setSelectedIndex(index);
             closeCurrentFile();
+            refreshTabTitles();
         });
         tab.add(button);
         setTabComponentAt(index, tab);
@@ -621,7 +648,8 @@ public class EditTabbedPane extends JTabbedPane {
     @Override
     public void insertTab(String title, Icon icon, Component component, String tip, int index) {
         super.insertTab(title, icon, component, tip, index);
-        setTitleAt(index, title);
+        // Refresh Tab row (required for correct display and close bindings)
+        refreshTabTitles();
     }
 
     @Override
@@ -672,19 +700,24 @@ public class EditTabbedPane extends JTabbedPane {
             if (Globals.getSettings().getBooleanSetting(Settings.Bool.ASSEMBLE_ON_OPEN) && mostRecentlyOpenedFile != null) {
                 fileChooser.setSelectedFile(mostRecentlyOpenedFile);
             }
+            // Enable multiple files support.
+            fileChooser.setMultiSelectionEnabled(true);
 
             if (fileChooser.showOpenDialog(mainUI) == JFileChooser.APPROVE_OPTION) {
-                File theFile = fileChooser.getSelectedFile();
-                theEditor.setCurrentOpenDirectory(theFile.getParent());
-                //theEditor.setCurrentSaveDirectory(theFile.getParent());// 13-July-2011 DPS.
-                if (!openFile(theFile)) {
-                    return false;
-                }
+                // Additional code for multi file select support.
+                File[] files = fileChooser.getSelectedFiles();
+                for (File theFile : files) {
+                    theEditor.setCurrentOpenDirectory(theFile.getParent());
+                    //theEditor.setCurrentSaveDirectory(theFile.getParent());// 13-July-2011 DPS.
+                    if (!openFile(theFile)) {
+                        return false;
+                    }
 
-                // possibly send this file right through to the assembler by firing Run->Assemble's
-                // actionPerformed() method.
-                if (theFile.canRead() && Globals.getSettings().getBooleanSetting(Settings.Bool.ASSEMBLE_ON_OPEN)) {
-                    mainUI.getRunAssembleAction().actionPerformed(null);
+                    // possibly send this file right through to the assembler by firing Run->Assemble's
+                    // actionPerformed() method.
+                    if (theFile.canRead() && Globals.getSettings().getBooleanSetting(Settings.Bool.ASSEMBLE_ON_OPEN)) {
+                        mainUI.getRunAssembleAction().actionPerformed(null);
+                    }
                 }
             }
             return true;

@@ -59,23 +59,30 @@
 package rars.tools;
 
 import rars.ProgramStatement;
+import rars.riscv.BasicInstruction;
+import rars.riscv.BasicInstructionFormat;
 import rars.riscv.hardware.AccessNotice;
 import rars.riscv.hardware.AddressErrorException;
 import rars.riscv.hardware.Memory;
 import rars.riscv.hardware.MemoryAccessNotice;
-import rars.riscv.BasicInstruction;
-import rars.riscv.BasicInstructionFormat;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.*;
-import java.awt.*;
-import java.util.Observable;
-
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Observable;
 
 /**
  * Instruction/memory dump tool. Dumps every instruction run and every memory access to a file.

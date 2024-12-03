@@ -12,11 +12,14 @@ package rars.venus.editors.jeditsyntax;
 import rars.Globals;
 import rars.venus.editors.jeditsyntax.tokenmarker.Token;
 
-import javax.swing.*;
+import javax.swing.Popup;
 import javax.swing.text.Segment;
 import javax.swing.text.TabExpander;
 import javax.swing.text.Utilities;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 
 /**

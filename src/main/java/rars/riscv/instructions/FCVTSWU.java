@@ -4,10 +4,10 @@ import jsoftfloat.Environment;
 import jsoftfloat.types.Float32;
 import rars.ProgramStatement;
 import rars.SimulationException;
-import rars.riscv.hardware.FloatingPointRegisterFile;
-import rars.riscv.hardware.RegisterFile;
 import rars.riscv.BasicInstruction;
 import rars.riscv.BasicInstructionFormat;
+import rars.riscv.hardware.FloatingPointRegisterFile;
+import rars.riscv.hardware.RegisterFile;
 
 import java.math.BigInteger;
 

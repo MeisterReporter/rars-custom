@@ -2,7 +2,10 @@ package rars.venus.editors;
 
 import javax.swing.text.Document;
 import javax.swing.undo.UndoManager;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.FontMetrics;
 
 /*
 Copyright (c) 2003-2010,  Pete Sanderson and Kenneth Vollmar

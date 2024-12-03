@@ -3,7 +3,8 @@ package rars.venus.run;
 import rars.Globals;
 import rars.venus.GuiAction;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import java.awt.event.ActionEvent;

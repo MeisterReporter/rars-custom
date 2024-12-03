@@ -5,7 +5,15 @@ import rars.ProgramStatement;
 import rars.Settings;
 import rars.SimulationException;
 import rars.riscv.hardware.RegisterFile;
-import rars.riscv.syscalls.*;
+import rars.riscv.syscalls.SyscallPrintChar;
+import rars.riscv.syscalls.SyscallPrintDouble;
+import rars.riscv.syscalls.SyscallPrintFloat;
+import rars.riscv.syscalls.SyscallPrintInt;
+import rars.riscv.syscalls.SyscallPrintIntBinary;
+import rars.riscv.syscalls.SyscallPrintIntHex;
+import rars.riscv.syscalls.SyscallPrintIntUnsigned;
+import rars.riscv.syscalls.SyscallPrintString;
+import rars.riscv.syscalls.SyscallWrite;
 import rars.util.FilenameFinder;
 import rars.util.SystemIO;
 
@@ -14,7 +22,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.StringTokenizer;
 
 	/*
 Copyright (c) 2003-2013,  Pete Sanderson and Kenneth Vollmar

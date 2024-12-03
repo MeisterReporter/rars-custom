@@ -1,11 +1,17 @@
 package rars.assembler;
 
-import rars.*;
-import rars.riscv.hardware.AddressErrorException;
-import rars.riscv.hardware.Memory;
+import rars.AssemblyException;
+import rars.ErrorList;
+import rars.ErrorMessage;
+import rars.Globals;
+import rars.ProgramStatement;
+import rars.RISCVprogram;
+import rars.Settings;
 import rars.riscv.BasicInstruction;
 import rars.riscv.ExtendedInstruction;
 import rars.riscv.Instruction;
+import rars.riscv.hardware.AddressErrorException;
+import rars.riscv.hardware.Memory;
 import rars.util.Binary;
 import rars.util.SystemIO;
 

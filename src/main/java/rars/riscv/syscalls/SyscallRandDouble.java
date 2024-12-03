@@ -2,9 +2,9 @@ package rars.riscv.syscalls;
 
 import rars.ExitingException;
 import rars.ProgramStatement;
+import rars.riscv.AbstractSyscall;
 import rars.riscv.hardware.FloatingPointRegisterFile;
 import rars.riscv.hardware.RegisterFile;
-import rars.riscv.AbstractSyscall;
 
 import java.util.Random;
 

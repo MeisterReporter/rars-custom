@@ -2,7 +2,6 @@ package rars.riscv.instructions;
 
 import jsoftfloat.Environment;
 import jsoftfloat.types.Float32;
-import rars.riscv.hardware.ControlAndStatusRegisterFile;
 
 /*
 Copyright (c) 2017,  Benjamin Landers

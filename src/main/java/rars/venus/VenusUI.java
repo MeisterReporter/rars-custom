@@ -15,12 +15,47 @@ import rars.venus.registers.ControlAndStatusWindow;
 import rars.venus.registers.FloatingPointWindow;
 import rars.venus.registers.RegistersPane;
 import rars.venus.registers.RegistersWindow;
-import rars.venus.run.*;
-import rars.venus.settings.*;
+import rars.venus.run.RunAssembleAction;
+import rars.venus.run.RunBackstepAction;
+import rars.venus.run.RunClearBreakpointsAction;
+import rars.venus.run.RunGoAction;
+import rars.venus.run.RunResetAction;
+import rars.venus.run.RunSpeedPanel;
+import rars.venus.run.RunStepAction;
+import rars.venus.settings.SettingsAction;
+import rars.venus.settings.SettingsEditorAction;
+import rars.venus.settings.SettingsExceptionHandlerAction;
+import rars.venus.settings.SettingsHighlightingAction;
+import rars.venus.settings.SettingsMemoryConfigurationAction;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import javax.swing.Action;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSplitPane;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.LookAndFeel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.WindowConstants;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -137,10 +172,12 @@ public class VenusUI extends JFrame {
 
     public VenusUI(String name, ArrayList<String> paths) {
         super(name);
+        // Theme Handling
         THEME = Globals.getSettings().getTheme();
         registerLookAndFeels();
         loadLookAndFeels();
         mainUI = this;
+
         Globals.setGui(this);
         this.editor = new Editor(this);
 
@@ -285,13 +322,13 @@ public class VenusUI extends JFrame {
                     editor.open();
                 }
             };
-            fileCloseAction = new GuiAction("Close", null, "Close the current file", KeyEvent.VK_C,
+            fileCloseAction = new GuiAction("Close", loadIcon("Close.png"), "Close the current file", KeyEvent.VK_C,
                     makeShortcut(KeyEvent.VK_W)) {
                 public void actionPerformed(ActionEvent e) {
                     editor.close();
                 }
             };
-            fileCloseAllAction = new GuiAction("Close All", null, "Close all open files",
+            fileCloseAllAction = new GuiAction("Close All", loadIcon("Close.png"), "Close all open files",
                     KeyEvent.VK_L, null) {
                 public void actionPerformed(ActionEvent e) {
                     editor.closeAll();
@@ -309,7 +346,7 @@ public class VenusUI extends JFrame {
                     editor.saveAs();
                 }
             };
-            fileSaveAllAction = new GuiAction("Save All", null, "Save all open files",
+            fileSaveAllAction = new GuiAction("Save All", loadIcon("SaveAs22.png"), "Save all open files",
                     KeyEvent.VK_V, null) {
                 public void actionPerformed(ActionEvent e) {
                     editor.saveAll();
@@ -318,7 +355,7 @@ public class VenusUI extends JFrame {
             fileDumpMemoryAction = new FileDumpMemoryAction("Dump Memory ...", loadIcon("Dump22.png"),
                     "Dump machine code or data in an available format", KeyEvent.VK_D, makeShortcut(KeyEvent.VK_D),
                     mainUI);
-            fileExitAction = new GuiAction("Exit", null, "Exit Rars", KeyEvent.VK_X, null) {
+            fileExitAction = new GuiAction("Exit", loadIcon("Exit.png"), "Exit Rars", KeyEvent.VK_X, null) {
                 public void actionPerformed(ActionEvent e) {
                     if (editor.closeAll()) {
                         System.exit(0);
@@ -547,19 +584,19 @@ public class VenusUI extends JFrame {
         fileOpen = new JMenuItem(fileOpenAction);
         fileOpen.setIcon(loadIcon("Open16.png"));
         fileClose = new JMenuItem(fileCloseAction);
-        fileClose.setIcon(loadIcon("MyBlank16.gif"));
+        fileClose.setIcon(loadIcon("Close.png"));
         fileCloseAll = new JMenuItem(fileCloseAllAction);
-        fileCloseAll.setIcon(loadIcon("MyBlank16.gif"));
+        fileCloseAll.setIcon(loadIcon("CloseAll.png"));
         fileSave = new JMenuItem(fileSaveAction);
         fileSave.setIcon(loadIcon("Save16.png"));
         fileSaveAs = new JMenuItem(fileSaveAsAction);
         fileSaveAs.setIcon(loadIcon("SaveAs16.png"));
         fileSaveAll = new JMenuItem(fileSaveAllAction);
-        fileSaveAll.setIcon(loadIcon("MyBlank16.gif"));
+        fileSaveAll.setIcon(loadIcon("SaveAll.png"));
         fileDumpMemory = new JMenuItem(fileDumpMemoryAction);
         fileDumpMemory.setIcon(loadIcon("Dump16.png"));
         fileExit = new JMenuItem(fileExitAction);
-        fileExit.setIcon(loadIcon("MyBlank16.gif"));
+        fileExit.setIcon(loadIcon("Exit.png"));
         file.add(fileNew);
         file.add(fileOpen);
         file.add(fileClose);

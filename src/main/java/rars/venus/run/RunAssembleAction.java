@@ -1,13 +1,28 @@
 package rars.venus.run;
 
-import rars.*;
-import rars.riscv.hardware.*;
+import rars.AssemblyException;
+import rars.ErrorList;
+import rars.ErrorMessage;
+import rars.Globals;
+import rars.RISCVprogram;
+import rars.Settings;
+import rars.riscv.hardware.ControlAndStatusRegisterFile;
+import rars.riscv.hardware.FloatingPointRegisterFile;
+import rars.riscv.hardware.InterruptController;
+import rars.riscv.hardware.Memory;
+import rars.riscv.hardware.RegisterFile;
 import rars.util.FilenameFinder;
 import rars.util.SystemIO;
-import rars.venus.*;
+import rars.venus.ExecutePane;
+import rars.venus.FileStatus;
+import rars.venus.GuiAction;
+import rars.venus.MessagesPane;
+import rars.venus.VenusUI;
 import rars.venus.registers.RegistersPane;
 
-import javax.swing.*;
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.util.ArrayList;

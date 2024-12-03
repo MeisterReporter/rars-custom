@@ -6,8 +6,8 @@ import rars.venus.registers.ControlAndStatusWindow;
 import rars.venus.registers.FloatingPointWindow;
 import rars.venus.registers.RegistersWindow;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JDesktopPane;
+import java.awt.Dimension;
 
 /*
 Copyright (c) 2003-2006,  Pete Sanderson and Kenneth Vollmar

@@ -1,6 +1,8 @@
 package rars.venus;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Icon;
+import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
 
 	/*

@@ -3,7 +3,7 @@ package rars.venus;
 import rars.tools.Tool;
 import rars.util.FilenameFinder;
 
-import javax.swing.*;
+import javax.swing.JMenu;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

@@ -1,11 +1,24 @@
 package rars.tools;
 
 import rars.Globals;
-import rars.riscv.hardware.*;
+import rars.riscv.hardware.AddressErrorException;
+import rars.riscv.hardware.InterruptController;
+import rars.riscv.hardware.Memory;
+import rars.riscv.hardware.MemoryAccessNotice;
 import rars.util.Binary;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;

@@ -1,6 +1,10 @@
 package rars.assembler;
 
-import rars.*;
+import rars.AssemblyException;
+import rars.ErrorList;
+import rars.ErrorMessage;
+import rars.Globals;
+import rars.RISCVprogram;
 
 import java.io.File;
 import java.util.ArrayList;

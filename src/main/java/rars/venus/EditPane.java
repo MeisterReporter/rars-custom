@@ -6,12 +6,16 @@ import rars.venus.editors.TextEditingArea;
 import rars.venus.editors.generic.GenericTextArea;
 import rars.venus.editors.jeditsyntax.JEditBasedTextArea;
 
-import javax.swing.*;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
@@ -272,6 +276,9 @@ public class EditPane extends JPanel implements Observer {
         return sourceCode.getText();
     }
 
+    public void setCaretPosition(int pos) {
+        sourceCode.setCaretPosition(pos);
+    }
 
     /**
      * Set the editing status for this EditPane's associated document.

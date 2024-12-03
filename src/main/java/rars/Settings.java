@@ -5,8 +5,9 @@ import rars.util.EditorFont;
 import rars.venus.editors.jeditsyntax.SyntaxStyle;
 import rars.venus.editors.jeditsyntax.SyntaxUtilities;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.UIManager;
+import java.awt.Color;
+import java.awt.Font;
 import java.util.HashMap;
 import java.util.Observable;
 import java.util.StringTokenizer;

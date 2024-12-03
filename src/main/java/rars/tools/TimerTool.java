@@ -27,21 +27,27 @@ package rars.tools;
 
 import rars.Globals;
 import rars.riscv.hardware.AccessNotice;
-import rars.riscv.hardware.MemoryAccessNotice;
-import rars.riscv.hardware.Memory;
-import rars.riscv.hardware.InterruptController;
-import rars.riscv.hardware.ControlAndStatusRegisterFile;
 import rars.riscv.hardware.AddressErrorException;
+import rars.riscv.hardware.ControlAndStatusRegisterFile;
+import rars.riscv.hardware.InterruptController;
+import rars.riscv.hardware.Memory;
+import rars.riscv.hardware.MemoryAccessNotice;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.awt.GridLayout;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.*;
 
 
 /**

@@ -4,7 +4,6 @@ import rars.ExitingException;
 import rars.ProgramStatement;
 import rars.riscv.AbstractSyscall;
 import rars.riscv.hardware.FloatingPointRegisterFile;
-import rars.util.Binary;
 import rars.util.SystemIO;
 
 /*

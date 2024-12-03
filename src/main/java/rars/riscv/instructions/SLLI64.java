@@ -1,9 +1,9 @@
 package rars.riscv.instructions;
 
 import rars.ProgramStatement;
-import rars.riscv.hardware.RegisterFile;
 import rars.riscv.BasicInstruction;
 import rars.riscv.BasicInstructionFormat;
+import rars.riscv.hardware.RegisterFile;
 
 public class SLLI64 extends BasicInstruction {
     public SLLI64() {

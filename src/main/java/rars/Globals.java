@@ -1,9 +1,9 @@
 package rars;
 
 import rars.assembler.SymbolTable;
-import rars.riscv.hardware.Memory;
 import rars.riscv.InstructionSet;
 import rars.riscv.SyscallNumberOverride;
+import rars.riscv.hardware.Memory;
 import rars.util.PropertiesFile;
 import rars.venus.VenusUI;
 

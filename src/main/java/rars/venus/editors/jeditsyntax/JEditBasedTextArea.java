@@ -3,10 +3,11 @@ package rars.venus.editors.jeditsyntax;
 import rars.Globals;
 import rars.Settings;
 import rars.venus.EditPane;
+import rars.venus.EditTabbedPane;
 import rars.venus.editors.TextEditingArea;
 import rars.venus.editors.jeditsyntax.tokenmarker.RISCVTokenMarker;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.UndoableEditEvent;
@@ -15,7 +16,18 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Font;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -36,8 +48,12 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
     private UndoManager undoManager;
     private UndoableEditListener undoableEditListener;
     private boolean isCompoundEdit = false;
+    private boolean isControlDown = false;
     private CompoundEdit compoundEdit;
     private JEditBasedTextArea sourceCode;
+
+    private List<String> foundSubroutines;
+    private List<Integer> tabSubroutinesIndex;
 
 
     public JEditBasedTextArea(EditPane editPain, JComponent lineNumbers) {
@@ -47,6 +63,8 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
         this.undoManager = new UndoManager();
         this.compoundEdit = new CompoundEdit();
         this.sourceCode = this;
+        this.foundSubroutines = new ArrayList<>();
+        this.tabSubroutinesIndex = new ArrayList<>();
 
         // Needed to support unlimited undo/redo capability
         undoableEditListener =
@@ -64,10 +82,124 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
         this.getDocument().addUndoableEditListener(undoableEditListener);
         this.setFont(Globals.getSettings().getEditorFont());
         this.setTokenMarker(new RISCVTokenMarker());
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                System.out.println(e.getPoint());
+            }
+        });
 
         addCaretListener(this);
     }
 
+    @Override
+    public void processKeyEvent(KeyEvent evt) {
+        super.processKeyEvent(evt);
+        if (evt.getID() == KeyEvent.KEY_PRESSED && evt.isControlDown() && !isControlDown) {
+            isControlDown = true;
+            findSubroutines();
+        }
+        if (evt.getID() == KeyEvent.KEY_RELEASED && isControlDown) {
+            isControlDown = false;
+            painter.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        }
+    }
+
+    @Override
+    public void select(int start, int end) {
+        super.select(start, end);
+        if (isControlDown && start == end) {
+            int line = getCaretLine();
+            int relativeOffset = start - getLineStartOffset(line);
+            // The selected word
+            String word = findWordAtIndex(line, relativeOffset);
+            word = word + (word.endsWith(":") ? "" : ":");
+            if (foundSubroutines.contains(word)) {
+                isControlDown = false;
+                int tabIndex = tabSubroutinesIndex.get(foundSubroutines.indexOf(word));
+                if (tabIndex >= 0) {
+                    EditTabbedPane tabPane = (EditTabbedPane) Globals.getGui().getMainPane().getEditTabbedPane();
+                    tabPane.setSelectedIndex(tabIndex);
+                    int index = tabPane.getCurrentEditTab().getSource().indexOf(word);
+                    if (index >= 0) {
+                        tabPane.getCurrentEditTab().setCaretPosition(index);
+                        tabPane.getCurrentEditTab().doFindText(word, true);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent evt) {
+        super.mouseMoved(evt);
+        if (isControlDown) {
+            int line = yToLine(evt.getY());
+            int offset = xToOffset(line, evt.getX());
+            String word = findWordAtIndex(line, offset);
+            if (foundSubroutines.contains(word + ":")) {
+                painter.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            } else if (painter.getCursor().getType() != Cursor.TEXT_CURSOR) {
+                painter.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+            }
+        }
+    }
+
+    private String findWordAtIndex(int line, int relativeOffset) {
+        String lineText = getLineText(line);
+        if (relativeOffset >= lineText.length()) {
+            return "";
+        }
+        // Find word beginning
+        int beginning = relativeOffset;
+        char currentChar = lineText.charAt(relativeOffset);
+        int offset = 0;
+        while (currentChar != ' ' && currentChar != '\t') {
+            offset--;
+            if (relativeOffset + offset < 0) {
+                currentChar = ' ';
+            } else {
+                currentChar = lineText.charAt(relativeOffset + offset);
+            }
+        }
+        beginning += offset;
+        // Find word end
+        int wordEnd = relativeOffset;
+        currentChar = lineText.charAt(relativeOffset);
+        offset = 0;
+        while (currentChar != ' ' && currentChar != '\t') {
+            offset++;
+            if (relativeOffset + offset >= lineText.length()) {
+                currentChar = ' ';
+            } else {
+                currentChar = lineText.charAt(relativeOffset + offset);
+            }
+        }
+        wordEnd += offset;
+        // The selected word
+        if (beginning + 1 > wordEnd) {
+            return "";
+        }
+        return lineText.substring(beginning + 1, wordEnd);
+    }
+
+    private void findSubroutines() {
+        foundSubroutines.clear();
+        tabSubroutinesIndex.clear();
+        EditTabbedPane tabPane = (EditTabbedPane) Globals.getGui().getMainPane().getEditTabbedPane();
+        for (String path : tabPane.getOpenFilePaths()) {
+            EditPane editPane = tabPane.getEditPaneForFile(path);
+            Pattern p = Pattern.compile("(\\w)+:");
+            editPane.getSource().replaceAll("#(.*)", "").lines().forEach(line -> {
+                Matcher matcher = p.matcher(line);
+                while (matcher.find()) {
+                    foundSubroutines.add(matcher.group());
+                    tabSubroutinesIndex.add(Arrays.asList(tabPane.getOpenFilePaths()).indexOf(path));
+                }
+            });
+        }
+    }
 
     public void setFont(Font f) {
         getPainter().setFont(f);
@@ -77,12 +209,6 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
     public Font getFont() {
         return getPainter().getFont();
     }
-
-
-// 		public void repaint() {		 getPainter().repaint();		 }
-// 		 public Dimension getSize() { return painter.getSize(); }
-// 		 public void setSize(Dimension d) { painter.setSize(d);}
-
 
     /**
      * Use for highlighting the line currently being edited.

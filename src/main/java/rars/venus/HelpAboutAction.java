@@ -2,7 +2,10 @@ package rars.venus;
 
 import rars.Globals;
 
-import javax.swing.*;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+import javax.swing.KeyStroke;
 import java.awt.event.ActionEvent;
 
 	/*

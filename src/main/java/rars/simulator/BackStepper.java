@@ -2,10 +2,10 @@ package rars.simulator;
 
 import rars.Globals;
 import rars.ProgramStatement;
+import rars.riscv.Instruction;
 import rars.riscv.hardware.ControlAndStatusRegisterFile;
 import rars.riscv.hardware.FloatingPointRegisterFile;
 import rars.riscv.hardware.RegisterFile;
-import rars.riscv.Instruction;
 
 /*
 Copyright (c) 2003-2006,  Pete Sanderson and Kenneth Vollmar

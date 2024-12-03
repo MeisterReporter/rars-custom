@@ -1,6 +1,11 @@
 package rars;
 
-import rars.assembler.*;
+import rars.assembler.Assembler;
+import rars.assembler.MacroPool;
+import rars.assembler.SourceLine;
+import rars.assembler.SymbolTable;
+import rars.assembler.TokenList;
+import rars.assembler.Tokenizer;
 import rars.riscv.hardware.RegisterFile;
 import rars.simulator.BackStepper;
 import rars.simulator.Simulator;

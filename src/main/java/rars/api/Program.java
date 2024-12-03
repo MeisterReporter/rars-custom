@@ -1,7 +1,17 @@
 package rars.api;
 
-import rars.*;
-import rars.riscv.hardware.*;
+import rars.AssemblyException;
+import rars.ErrorList;
+import rars.Globals;
+import rars.RISCVprogram;
+import rars.Settings;
+import rars.SimulationException;
+import rars.riscv.hardware.ControlAndStatusRegisterFile;
+import rars.riscv.hardware.FloatingPointRegisterFile;
+import rars.riscv.hardware.InterruptController;
+import rars.riscv.hardware.Memory;
+import rars.riscv.hardware.Register;
+import rars.riscv.hardware.RegisterFile;
 import rars.simulator.ProgramArgumentList;
 import rars.simulator.Simulator;
 import rars.util.SystemIO;

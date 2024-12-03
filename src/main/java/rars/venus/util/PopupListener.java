@@ -1,6 +1,6 @@
 package rars.venus.util;
 
-import javax.swing.*;
+import javax.swing.JPopupMenu;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 

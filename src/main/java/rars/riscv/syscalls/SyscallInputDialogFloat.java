@@ -2,11 +2,11 @@ package rars.riscv.syscalls;
 
 import rars.ExitingException;
 import rars.ProgramStatement;
+import rars.riscv.AbstractSyscall;
 import rars.riscv.hardware.FloatingPointRegisterFile;
 import rars.riscv.hardware.RegisterFile;
-import rars.riscv.AbstractSyscall;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 
 /*
 Copyright (c) 2003-2008,  Pete Sanderson and Kenneth Vollmar

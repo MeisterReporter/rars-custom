@@ -27,15 +27,21 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 package rars.tools;
 
 import rars.ProgramStatement;
+import rars.riscv.BasicInstruction;
+import rars.riscv.BasicInstructionFormat;
 import rars.riscv.hardware.AccessNotice;
 import rars.riscv.hardware.AddressErrorException;
 import rars.riscv.hardware.Memory;
 import rars.riscv.hardware.MemoryAccessNotice;
-import rars.riscv.BasicInstruction;
-import rars.riscv.BasicInstructionFormat;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JTextField;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.Observable;
 
 /**

@@ -2,7 +2,8 @@ package rars.util;
 
 import rars.Globals;
 
-import java.awt.*;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.util.Arrays;
 
 	/*
