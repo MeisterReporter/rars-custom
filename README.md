@@ -5,6 +5,15 @@ RARS, the RISC-V Assembler, Simulator, and Runtime, will assemble and simulate
 the execution of RISC-V assembly language programs. Its primary goal is to be
 an effective development environment for people getting started with RISC-V. 
 
+## New-Features
+
+  - Multiple Themes, including Darklaf (a customizable theme)
+  - Closing files via the tab
+  - Reordering tabs via drag and drop
+  - Jump directly to used subroutines by clicking on the name (CTRL + Click)
+  - Support for opening multiple files at once
+  - Created new icons, which where missing
+
 ## Features
 
   - RISC-V IMFDN Base (riscv32 and riscv64)
