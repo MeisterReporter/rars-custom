@@ -82,13 +82,6 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
         this.getDocument().addUndoableEditListener(undoableEditListener);
         this.setFont(Globals.getSettings().getEditorFont());
         this.setTokenMarker(new RISCVTokenMarker());
-        this.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                super.mouseClicked(e);
-                System.out.println(e.getPoint());
-            }
-        });
 
         addCaretListener(this);
     }
@@ -96,10 +89,12 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
     @Override
     public void processKeyEvent(KeyEvent evt) {
         super.processKeyEvent(evt);
+        // Responsible for finding subroutines when the user presses CTRL
         if (evt.getID() == KeyEvent.KEY_PRESSED && evt.isControlDown() && !isControlDown) {
             isControlDown = true;
             findSubroutines();
         }
+        // Responsible for changing the cursor when the user releases CTRL
         if (evt.getID() == KeyEvent.KEY_RELEASED && isControlDown) {
             isControlDown = false;
             painter.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
@@ -107,11 +102,28 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
     }
 
     @Override
-    public void select(int start, int end) {
-        super.select(start, end);
-        if (isControlDown && start == end) {
+    public void mouseMoved(MouseEvent evt) {
+        super.mouseMoved(evt);
+        // Responsible for changing the cursor when the user hovers over a valid subroutine
+        if (isControlDown) {
+            int line = yToLine(evt.getY());
+            int offset = xToOffset(line, evt.getX());
+            String word = findWordAtIndex(line, offset);
+            if (foundSubroutines.contains(word + ":")) {
+                painter.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            } else if (painter.getCursor().getType() != Cursor.TEXT_CURSOR) {
+                painter.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+            }
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent evt) {
+        super.mousePressed(evt);
+        // Responsible for selecting the subroutine when the user clicks on it
+        if (isControlDown) {
             int line = getCaretLine();
-            int relativeOffset = start - getLineStartOffset(line);
+            int relativeOffset = getCaretPosition() - getLineStartOffset(line);
             // The selected word
             String word = findWordAtIndex(line, relativeOffset);
             word = word + (word.endsWith(":") ? "" : ":");
@@ -127,21 +139,6 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
                         tabPane.getCurrentEditTab().doFindText(word, true);
                     }
                 }
-            }
-        }
-    }
-
-    @Override
-    public void mouseMoved(MouseEvent evt) {
-        super.mouseMoved(evt);
-        if (isControlDown) {
-            int line = yToLine(evt.getY());
-            int offset = xToOffset(line, evt.getX());
-            String word = findWordAtIndex(line, offset);
-            if (foundSubroutines.contains(word + ":")) {
-                painter.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            } else if (painter.getCursor().getType() != Cursor.TEXT_CURSOR) {
-                painter.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
             }
         }
     }

@@ -9,6 +9,8 @@
 
 package rars.venus.editors.jeditsyntax;
 
+import rars.riscv.RiscVFormatter;
+
 import javax.swing.JPopupMenu;
 import javax.swing.text.BadLocationException;
 import java.awt.Component;
@@ -78,6 +80,7 @@ public abstract class InputHandler extends KeyAdapter {
     public static final ActionListener SELECT_PREV_WORD = new prev_word(true);
     public static final ActionListener REPEAT = new repeat();
     public static final ActionListener TOGGLE_RECT = new toggle_rect();
+    public static final ActionListener AUTO_FORMAT = new auto_format();
     // Clipboard
     public static final ActionListener CLIP_COPY = new clip_copy();
     public static final ActionListener CLIP_PASTE = new clip_paste();
@@ -1032,6 +1035,23 @@ public abstract class InputHandler extends KeyAdapter {
             JEditTextArea textArea = getTextArea(evt);
             textArea.setSelectionRectangular(
                     !textArea.isSelectionRectangular());
+        }
+    }
+
+    public static class auto_format implements ActionListener {
+        public void actionPerformed(ActionEvent evt) {
+            JEditTextArea textArea = getTextArea(evt);
+            if (textArea != null) {
+                // System.out.println("Auto Format");
+                int caret = textArea.getCaretPosition();
+                // Build a simple formatter
+                RiscVFormatter formatter = new RiscVFormatter(textArea.getText());
+                String formattedText = formatter.format();
+                textArea.setText(formattedText);
+                // Go back to the original position
+                textArea.scrollTo(0, 0);
+                textArea.setCaretPosition(caret);
+            }
         }
     }
 

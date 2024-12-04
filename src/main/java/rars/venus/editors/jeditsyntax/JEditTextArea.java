@@ -1518,7 +1518,11 @@ public class JEditTextArea extends JComponent {
         }
     }
 
-    public void mouseMoved(MouseEvent evt) {
+    protected void mouseMoved(MouseEvent evt) {
+
+    }
+
+    protected void mousePressed(MouseEvent evt) {
 
     }
 
@@ -1935,6 +1939,8 @@ public class JEditTextArea extends JComponent {
                     doTripleClick(evt, line, offset, dot);
                     break;
             }
+
+            JEditTextArea.this.mousePressed(evt);
         }
 
         private void doSingleClick(MouseEvent evt, int line,

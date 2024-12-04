@@ -78,6 +78,8 @@ public class DefaultInputHandler extends InputHandler {
 
         addKeyBinding("C+ENTER", REPEAT);
 
+        addKeyBinding("CA+L", AUTO_FORMAT);
+
         // Clipboard
         addKeyBinding("C+C", CLIP_COPY);
         addKeyBinding("C+V", CLIP_PASTE);
