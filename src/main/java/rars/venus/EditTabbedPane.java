@@ -15,6 +15,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -145,7 +147,7 @@ public class EditTabbedPane extends JTabbedPane {
                 super.mouseDragged(e);
             }
         });
-        addMouseListener(new MouseAdapter() {
+        this.addMouseListener(new MouseAdapter() {
             public void mouseReleased(MouseEvent e) {
                 if(dragging) {
                     int tabNumber = getUI().tabForCoordinate(EditTabbedPane.this, e.getX(), 10);
@@ -167,6 +169,12 @@ public class EditTabbedPane extends JTabbedPane {
                 tabImage = null;
                 // Repaint to fix a visual glitch: The dragged tab image didn't disappear immediately
                 repaint();
+            }
+        });
+        this.addChangeListener(e -> {
+            EditPane editPane = getCurrentEditTab();
+            if (editPane != null) {
+                editPane.markSyntaxDirty();
             }
         });
     }

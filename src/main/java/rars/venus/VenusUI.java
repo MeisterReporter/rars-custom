@@ -9,8 +9,10 @@ import com.github.weisj.darklaf.theme.spec.FontSizeRule;
 import rars.Globals;
 import rars.Settings;
 import rars.riscv.InstructionSet;
+import rars.riscv.RiscVFormatter;
 import rars.riscv.dump.DumpFormatLoader;
 import rars.simulator.Simulator;
+import rars.venus.editors.jeditsyntax.JEditTextArea;
 import rars.venus.registers.ControlAndStatusWindow;
 import rars.venus.registers.FloatingPointWindow;
 import rars.venus.registers.RegistersPane;
@@ -130,7 +132,7 @@ public class VenusUI extends JFrame {
     // components of the menubar
     private JMenu file, run, window, help, edit, settings, settingsThemeSelect;
     private JMenuItem fileNew, fileOpen, fileClose, fileCloseAll, fileSave, fileSaveAs, fileSaveAll, fileDumpMemory, fileExit;
-    private JMenuItem editUndo, editRedo, editCut, editCopy, editPaste, editFindReplace, editSelectAll;
+    private JMenuItem editUndo, editRedo, editCut, editCopy, editPaste, editFindReplace, editSelectAll, editAutoFormat;
     private JMenuItem runGo, runStep, runBackstep, runReset, runAssemble, runStop, runPause, runClearBreakpoints, runToggleBreakpoints;
     private JCheckBoxMenuItem settingsLabel, settingsPopupInput, settingsValueDisplayBase, settingsAddressDisplayBase,
             settingsExtended, settingsAssembleOnOpen, settingsAssembleAll, settingsAssembleOpen, settingsWarningsAreErrors,
@@ -153,6 +155,7 @@ public class VenusUI extends JFrame {
     private Action editUndoAction;
     private Action editRedoAction;
     private Action editCutAction, editCopyAction, editPasteAction, editFindReplaceAction, editSelectAllAction;
+    private Action editAutoFormatAction;
     private Action runAssembleAction, runGoAction, runStepAction, runBackstepAction, runResetAction,
             runStopAction, runPauseAction, runClearBreakpointsAction, runToggleBreakpointsAction;
     private Action settingsLabelAction, settingsPopupInputAction, settingsValueDisplayBaseAction, settingsAddressDisplayBaseAction,
@@ -419,6 +422,13 @@ public class VenusUI extends JFrame {
                     mainPane.getEditPane().selectAllText();
                 }
             };
+            editAutoFormatAction = new GuiAction("Auto Format", loadIcon("Format22.png"),
+                    "Auto Format the current Document", null, null) {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    mainPane.getEditPane().formatDocument();
+                }
+            };
 
             runAssembleAction = new RunAssembleAction("Assemble", loadIcon("Assemble22.png"),
                     "Assemble the current file and clear breakpoints", KeyEvent.VK_A,
@@ -625,6 +635,8 @@ public class VenusUI extends JFrame {
         editFindReplace.setIcon(loadIcon("Find16.png"));//"Paste16.gif"));
         editSelectAll = new JMenuItem(editSelectAllAction);
         editSelectAll.setIcon(loadIcon("MyBlank16.gif"));
+        editAutoFormat = new JMenuItem(editAutoFormatAction);
+        editAutoFormat.setIcon(loadIcon("Format22.png"));
         edit.add(editUndo);
         edit.add(editRedo);
         edit.addSeparator();
@@ -634,6 +646,7 @@ public class VenusUI extends JFrame {
         edit.addSeparator();
         edit.add(editFindReplace);
         edit.add(editSelectAll);
+        edit.add(editAutoFormat);
 
         runAssemble = new JMenuItem(runAssembleAction);
         runAssemble.setIcon(loadIcon("Assemble16.png"));//"MyAssemble16.gif"));
@@ -1056,6 +1069,7 @@ public class VenusUI extends JFrame {
         editPasteAction.setEnabled(false);
         editFindReplaceAction.setEnabled(false);
         editSelectAllAction.setEnabled(false);
+        editAutoFormatAction.setEnabled(false);
         settingsMemoryConfigurationAction.setEnabled(true); // added 21 July 2009
         runAssembleAction.setEnabled(false);
         runGoAction.setEnabled(false);
@@ -1090,6 +1104,7 @@ public class VenusUI extends JFrame {
         editPasteAction.setEnabled(true);
         editFindReplaceAction.setEnabled(true);
         editSelectAllAction.setEnabled(true);
+        editAutoFormatAction.setEnabled(true);
         settingsMemoryConfigurationAction.setEnabled(true);
         runAssembleAction.setEnabled(true);
         // If assemble-all, allow previous Run menu settings to remain.
@@ -1126,6 +1141,7 @@ public class VenusUI extends JFrame {
         editPasteAction.setEnabled(true);
         editFindReplaceAction.setEnabled(true);
         editSelectAllAction.setEnabled(true);
+        editAutoFormatAction.setEnabled(true);
         settingsMemoryConfigurationAction.setEnabled(true); // added 21 July 2009
         runAssembleAction.setEnabled(true);
         runGoAction.setEnabled(false);
@@ -1159,6 +1175,7 @@ public class VenusUI extends JFrame {
         editPasteAction.setEnabled(true);
         editFindReplaceAction.setEnabled(true);
         editSelectAllAction.setEnabled(true);
+        editAutoFormatAction.setEnabled(true);
         settingsMemoryConfigurationAction.setEnabled(true); // added 21 July 2009
         runAssembleAction.setEnabled(false);
         runGoAction.setEnabled(false);
@@ -1192,6 +1209,7 @@ public class VenusUI extends JFrame {
         editPasteAction.setEnabled(true);
         editFindReplaceAction.setEnabled(true);
         editSelectAllAction.setEnabled(true);
+        editAutoFormatAction.setEnabled(true);
         settingsMemoryConfigurationAction.setEnabled(true); // added 21 July 2009
         runAssembleAction.setEnabled(true);
         runGoAction.setEnabled(true);
@@ -1225,6 +1243,7 @@ public class VenusUI extends JFrame {
         editPasteAction.setEnabled(false);
         editFindReplaceAction.setEnabled(false);
         editSelectAllAction.setEnabled(false);
+        editAutoFormatAction.setEnabled(false);
         settingsMemoryConfigurationAction.setEnabled(false); // added 21 July 2009
         runAssembleAction.setEnabled(false);
         runGoAction.setEnabled(false);
@@ -1258,6 +1277,7 @@ public class VenusUI extends JFrame {
         editPasteAction.setEnabled(true);
         editFindReplaceAction.setEnabled(true);
         editSelectAllAction.setEnabled(true);
+        editAutoFormatAction.setEnabled(true);
         settingsMemoryConfigurationAction.setEnabled(true); // added 21 July 2009
         runAssembleAction.setEnabled(true);
         runGoAction.setEnabled(false);

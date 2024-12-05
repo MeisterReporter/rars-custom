@@ -2,6 +2,9 @@ package rars.venus;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
  
  /*
 Copyright (c) 2003-2007,  Pete Sanderson and Kenneth Vollmar
@@ -182,6 +185,19 @@ public class Editor {
         }
     }
 
+    /**
+     * Gets the text all open source files.
+     *
+     * @return A map containing the filename and source of all open files.
+     */
+    public Map<String, String> getOpenSources() {
+        HashMap<String, String> sources = new HashMap<>();
+        for (int i = 0; i < editTabbedPane.getTabCount(); i++) {
+            EditPane editPane = (EditPane) editTabbedPane.getComponentAt(i);
+            sources.put(editPane.getFilename(), editPane.getSource());
+        }
+        return sources;
+    }
 
     /**
      * Perform "new" operation to create an empty tab.

@@ -1,10 +1,17 @@
 package rars.venus;
 
+import rars.AssemblyException;
+import rars.ErrorList;
+import rars.ErrorMessage;
 import rars.Globals;
+import rars.RISCVprogram;
 import rars.Settings;
+import rars.riscv.RiscVFormatter;
+import rars.util.FilenameFinder;
 import rars.venus.editors.TextEditingArea;
 import rars.venus.editors.generic.GenericTextArea;
 import rars.venus.editors.jeditsyntax.JEditBasedTextArea;
+import rars.venus.editors.jeditsyntax.JEditTextArea;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -19,10 +26,18 @@ import java.awt.Point;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /*
 Copyright (c) 2003-2011,  Pete Sanderson and Kenneth Vollmar
@@ -74,6 +89,8 @@ public class EditPane extends JPanel implements Observer {
     private CompoundEdit compoundEdit;
     private FileStatus fileStatus;
 
+    private boolean isSyntaxDirty;
+
     /**
      * Constructor for the EditPane class.
      */
@@ -88,6 +105,7 @@ public class EditPane extends JPanel implements Observer {
         Globals.getSettings().addObserver(this);
         this.fileStatus = new FileStatus();
         lineNumbers = new JLabel();
+        this.isSyntaxDirty = true;
 
         if (Globals.getSettings().getBooleanSetting(Settings.Bool.GENERIC_TEXT_EDITOR)) {
             this.sourceCode = new GenericTextArea(this, lineNumbers);
@@ -142,6 +160,9 @@ public class EditPane extends JPanel implements Observer {
                         if (showingLineNumbers()) {
                             lineNumbers.setText(getLineNumbersList(sourceCode.getDocument()));
                         }
+
+                        // Check for errors
+                        isSyntaxDirty = true;
                     }
 
                     public void removeUpdate(DocumentEvent evt) {
@@ -192,8 +213,176 @@ public class EditPane extends JPanel implements Observer {
         editInfo.add(caretPositionLabel, BorderLayout.WEST);
         editInfo.add(showLineNumbers, BorderLayout.CENTER);
         this.add(editInfo, BorderLayout.SOUTH);
+
+        // Check the syntax every time interval if the syntax is dirty
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (isSyntaxDirty) {
+                    checkForErrors();
+                }
+            }
+        }, 1000, 1000);
     }
 
+    /**
+     * This method executes the assembly of a temporary copy of the current files and looks for errors
+     */
+    private void checkForErrors() {
+        if (sourceCode instanceof JEditTextArea textArea) {
+            textArea.clearErrors();
+            // Create temporary assembly folder
+            File tempDir;
+            try {
+                tempDir = Files.createTempDirectory("rars").toFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            // Try to assemble the program and look for errors
+            ArrayList<RISCVprogram> programsToAssemble;
+            try {
+                Globals.program = new RISCVprogram();
+                // Find the files to assemble
+                ArrayList<String> filesToAssemble;
+                if (Globals.getSettings().getBooleanSetting(Settings.Bool.ASSEMBLE_ALL)) {// setting calls for multiple file assembly
+                    filesToAssemble = FilenameFinder.getFilenameList(
+                            new File(FileStatus.getName()).getParent(), Globals.fileExtensions);
+                } else {
+                    filesToAssemble = new ArrayList<>();
+                    // Copy one single file to the temp directory
+                    Map<String, String> sources = mainUI.getEditor().getOpenSources();
+                    String name = new File(FileStatus.getName()).getName();
+                    String source = sources.get(name);
+                    if (source != null) {
+                        File tempFile = new File(tempDir, name);
+                        try {
+                            if (!tempFile.exists()) tempFile.createNewFile();
+                            BufferedWriter outFileStream = new BufferedWriter(new FileWriter(tempFile));
+                            outFileStream.write(source, 0, source.length());
+                            outFileStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                // Copy the files to assemble into the temp directory
+                for (String filePath : filesToAssemble) {
+                    File orginalFile = new File(filePath);
+                    File tempFile = new File(tempDir, orginalFile.getName());
+                    try {
+                        Files.copy(orginalFile.toPath(), tempFile.toPath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (Globals.getSettings().getBooleanSetting(Settings.Bool.ASSEMBLE_OPEN)) {
+                    Map<String, String> sources = mainUI.getEditor().getOpenSources();
+                    for (String name : sources.keySet()) {
+                        File tempFile = new File(tempDir, name);
+                        try {
+                            if (!tempFile.exists()) tempFile.createNewFile();
+                            BufferedWriter outFileStream = new BufferedWriter(new FileWriter(tempFile));
+                            outFileStream.write(sources.get(name), 0, sources.get(name).length());
+                            outFileStream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+                // Set the paths to the assembly directory
+                File[] tempFiles = tempDir.listFiles();
+                if (tempFiles == null) {
+                    clearFolder(tempDir);
+                    return;
+                }
+                filesToAssemble.clear();
+                for (File f : tempFiles) {
+                    filesToAssemble.add(f.getAbsolutePath());
+                }
+                // Start with the assembly as usual
+                String exceptionHandler = null;
+                if (Globals.getSettings().getBooleanSetting(Settings.Bool.EXCEPTION_HANDLER_ENABLED) &&
+                        Globals.getSettings().getExceptionHandler() != null &&
+                        !Globals.getSettings().getExceptionHandler().isEmpty()) {
+                    exceptionHandler = Globals.getSettings().getExceptionHandler();
+                }
+                programsToAssemble = Globals.program.prepareFilesForAssembly(filesToAssemble, FileStatus.getFile().getPath(), exceptionHandler);
+                // added logic to receive any warnings and output them.... DPS 11/28/06
+                ErrorList warnings = Globals.program.assemble(programsToAssemble, true,
+                        false);
+                if (warnings == null) {
+                    clearFolder(tempDir);
+                    return;
+                }
+                for (ErrorMessage em : warnings.getErrorMessages()) {
+                    // Errors occurred during assembly
+                    if (em.getLine() != 0 && em.getPosition() != 0) {
+                        if (new File(FileStatus.getName()).getName().equals(new File(em.getFilename()).getName())) {
+                            // Errors occurred during assembly
+                            String[] split = em.getMessage().split("\"");
+                            String codeSnippet = "";
+                            if (split.length >= 3) {
+                                codeSnippet = split[1];
+                            }
+                            int length = codeSnippet.isBlank() ? textArea.getLineLength(em.getLine() - 1) - em.getPosition()
+                                    : codeSnippet.length();
+                            textArea.addErrorInLine(em.getMessage(), em.getLine(), em.getPosition(),
+                                    em.getPosition() + length, true);
+                        }
+                        textArea.repaint();
+                    }
+                }
+            } catch (AssemblyException pe) {
+                // Select editor line containing first error, and corresponding error message.
+                ArrayList<ErrorMessage> errorMessages = pe.errors().getErrorMessages();
+                for (ErrorMessage em : errorMessages) {
+                    if (em.getLine() != 0 && em.getPosition() != 0) {
+                        if (new File(FileStatus.getName()).getName().equals(new File(em.getFilename()).getName())) {
+                            // Errors occurred during assembly
+                            String[] split = em.getMessage().split("\"");
+                            String codeSnippet = "";
+                            if (split.length >= 3) {
+                                codeSnippet = split[1];
+                            }
+                            int length = codeSnippet.isBlank() ? textArea.getLineLength(em.getLine() - 1) - em.getPosition()
+                                    : codeSnippet.length();
+                            textArea.addErrorInLine(em.getMessage(), em.getLine(), em.getPosition(),
+                                    em.getPosition() + length, false);
+                        }
+                    }
+                    textArea.repaint();
+                }
+            }
+            // Clear temp folder
+            clearFolder(tempDir);
+        }
+    }
+
+    public void markSyntaxDirty() {
+        isSyntaxDirty = true;
+    }
+
+    public void formatDocument() {
+        int caret = sourceCode.getCaretPosition();
+        // Build a simple formatter
+        RiscVFormatter formatter = new RiscVFormatter(sourceCode.getText());
+        String formattedText = formatter.format();
+        sourceCode.setText(formattedText);
+        // Go back to the original position
+        if (sourceCode instanceof JEditTextArea textArea) textArea.scrollTo(0, 0);
+        sourceCode.setCaretPosition(caret);
+    }
+
+    private void clearFolder(File dir) {
+        File[] files = dir.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                file.delete();
+            }
+        }
+        dir.delete();
+    }
 
     /**
      * For initalizing the source code when opening an ASM file

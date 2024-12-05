@@ -21,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JToolTip;
 import javax.swing.MenuElement;
 import javax.swing.MenuSelectionManager;
 import javax.swing.ScrollPaneConstants;
@@ -45,6 +46,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -72,6 +74,7 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -146,6 +149,7 @@ public class JEditTextArea extends JComponent {
         bracketLine = bracketPosition = -1;
         blink = true;
         unredoing = false;
+        errors = new ArrayList<>();
 
         JScrollPane lineNumberScroller = new JScrollPane(lineNumbers,
                 ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
@@ -209,6 +213,29 @@ public class JEditTextArea extends JComponent {
         focusedComponent = this;
     }
 
+    public void addErrorInLine(String error, int line, int errorStart, int errorEnd, boolean warning) {
+        errors.add(new ErrorLine(error, line, errorStart, errorEnd - errorStart, warning));
+    }
+
+    public void clearErrors() {
+        errors.clear();
+    }
+
+    /**
+     * Returns the {@link ErrorLine}s of the passed line. If not found it returns an empty {@link List}.
+     *
+     * @param line The line beginning at 1
+     * @return The {@link ErrorLine}s or an empty {@link List} if there are no errors.
+     */
+    public List<ErrorLine> getErrorInLines(int line) {
+        List<ErrorLine> lines = new ArrayList<>();
+        for (ErrorLine error : errors) {
+            if (error.line() == line) {
+                lines.add(error);
+            }
+        }
+        return lines;
+    }
 
 /**
  * Returns if this component can be traversed by pressing
@@ -1537,6 +1564,7 @@ public class JEditTextArea extends JComponent {
     protected TextAreaPainter painter;
 
     protected JPopupMenu popup;
+    protected JToolTip errorTip;
 
     protected EventListenerList listenerList;
     protected MutableCaretEvent caretEvent;
@@ -1580,6 +1608,7 @@ public class JEditTextArea extends JComponent {
     // to pleasingly select the text and location of the undo.   DPS 3-May-2010
     protected boolean unredoing = false;
 
+    protected List<ErrorLine> errors;
 
     protected void fireCaretEvent() {
         Object[] listeners = listenerList.getListenerList();
@@ -2076,6 +2105,17 @@ public class JEditTextArea extends JComponent {
     public String getSyntaxSensitiveToolTipText(int x, int y) {
         String result = null;
         int line = this.yToLine(y);
+        // Look for error tooltip
+        for (ErrorLine errorLine : getErrorInLines(line + 1)) {
+            int offset = xToOffset(line, x);
+            if (offset >= errorLine.errorStart() && offset < errorLine.errorStart() + errorLine.errorEnd()) {
+                result = "<html>";
+                result += (errorLine.isWarning() ? "<b>Warning:</b> " : "<b>Error:</b> ") + errorLine.error();
+                result += "</html>";
+                return result;
+            }
+        }
+        // Look for syntax-sensitive help
         ArrayList<PopupHelpItem> matches = getSyntaxSensitiveHelpAtLineOffset(line, this.xToOffset(line, x), true);
         if (matches == null) {
             return null;

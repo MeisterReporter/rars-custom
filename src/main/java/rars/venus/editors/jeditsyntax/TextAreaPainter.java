@@ -19,6 +19,7 @@ import javax.swing.ToolTipManager;
 import javax.swing.text.Segment;
 import javax.swing.text.TabExpander;
 import javax.swing.text.Utilities;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -30,6 +31,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 /**
  * The text area repaint manager. It performs double buffering and paints
@@ -588,6 +590,13 @@ public class TextAreaPainter extends JComponent implements TabExpander {
 
         paintHighlight(gfx, line, y);
 
+        List<ErrorLine> errorLines = textArea.getErrorInLines(currentLineIndex + 1);
+        if (!errorLines.isEmpty()) {
+            for (ErrorLine errorLine : errorLines) {
+                paintErrorLine(gfx, line, y, errorLine);
+            }
+        }
+
         gfx.setFont(defaultFont);
         gfx.setColor(defaultColor);
         y += fm.getHeight();
@@ -604,6 +613,31 @@ public class TextAreaPainter extends JComponent implements TabExpander {
         if (eolMarkers) {
             gfx.setColor(eolMarkerColor);
             gfx.drawString(".", x, y);
+        }
+    }
+
+    protected void paintErrorLine(Graphics gfx, int line, int y, ErrorLine errorLine) {
+        final int jagWidth = 3;
+        final int jagHeight = 3;
+        int x = textArea.offsetToX(line, errorLine.errorStart() - 1);
+        gfx.setColor(errorLine.isWarning() ? Color.YELLOW : Color.RED);
+        int xEnd = textArea.offsetToX(line, errorLine.errorEnd());
+        // Draw ZigZag line: \/\/\/\/\/\/\/
+        boolean zig = true;
+        for (int i = 0; i < xEnd / jagWidth; i++) {
+            if (gfx instanceof Graphics2D g2d) {
+                g2d.setStroke(new BasicStroke(2));
+                if (zig) {
+                    // Draws: \
+                    g2d.drawLine(x + (i * jagWidth), y + fm.getHeight(),
+                            x + jagWidth + (i * jagWidth), y + fm.getHeight() + jagHeight);
+                } else {
+                    // Draws: /
+                    g2d.drawLine(x + (i * jagWidth), y + fm.getHeight() + jagHeight,
+                            x + jagWidth + (i * jagWidth), y + fm.getHeight());
+                }
+                zig = !zig;
+            }
         }
     }
 
