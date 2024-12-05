@@ -21,7 +21,7 @@ import java.util.StringTokenizer;
  * The default input handler. It maps sequences of keystrokes into actions
  * and inserts key typed events into the text area.
  *
- * @author Slava Pestov
+ * @author Slava Pestov, Meister Reporter for new actions
  * @version $Id: DefaultInputHandler.java,v 1.18 1999/12/13 03:40:30 sp Exp $
  */
 public class DefaultInputHandler extends InputHandler {
@@ -79,6 +79,7 @@ public class DefaultInputHandler extends InputHandler {
         addKeyBinding("C+ENTER", REPEAT);
 
         addKeyBinding("CA+L", AUTO_FORMAT);
+
 
         // Clipboard
         addKeyBinding("C+C", CLIP_COPY);

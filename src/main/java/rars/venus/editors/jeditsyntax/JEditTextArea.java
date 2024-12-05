@@ -11,6 +11,9 @@ package rars.venus.editors.jeditsyntax;
 
 import rars.Globals;
 import rars.Settings;
+import rars.riscv.Instruction;
+import rars.venus.EditPane;
+import rars.venus.EditTabbedPane;
 import rars.venus.editors.jeditsyntax.tokenmarker.Token;
 import rars.venus.editors.jeditsyntax.tokenmarker.TokenMarker;
 
@@ -46,7 +49,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -74,8 +76,11 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * jEdit's text area component. It is more suited for editing program
@@ -198,7 +203,7 @@ public class JEditTextArea extends JComponent {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(
                 new KeyEventDispatcher() {
                     public boolean dispatchKeyEvent(KeyEvent e) {
-                        int modifiers = e.getModifiers();
+                        int modifiers = e.getModifiersEx();
                         if (JEditTextArea.this.isFocusOwner() && e.getKeyCode() == KeyEvent.VK_TAB
                             && (modifiers == 0 || (modifiers & InputEvent.SHIFT_MASK) != 0)) {
                             processKeyEvent(e);
@@ -213,12 +218,37 @@ public class JEditTextArea extends JComponent {
         focusedComponent = this;
     }
 
+    protected void findSubroutines() {
+        foundSubroutines.clear();
+        tabSubroutinesIndex.clear();
+        EditTabbedPane tabPane = (EditTabbedPane) Globals.getGui().getMainPane().getEditTabbedPane();
+        for (String path : tabPane.getOpenFilePaths()) {
+            EditPane editPane = tabPane.getEditPaneForFile(path);
+            Pattern p = Pattern.compile("(\\w)+:");
+            editPane.getSource().replaceAll("#(.*)", "").lines().forEach(line -> {
+                Matcher matcher = p.matcher(line);
+                while (matcher.find()) {
+                    foundSubroutines.add(matcher.group());
+                    tabSubroutinesIndex.add(Arrays.asList(tabPane.getOpenFilePaths()).indexOf(path));
+                }
+            });
+        }
+    }
+
     public void addErrorInLine(String error, int line, int errorStart, int errorEnd, boolean warning) {
         errors.add(new ErrorLine(error, line, errorStart, errorEnd - errorStart, warning));
     }
 
     public void clearErrors() {
         errors.clear();
+    }
+
+    public boolean isPopupVisible() {
+        return popupMenu != null && popupMenu.isVisible();
+    }
+
+    public JPopupMenu getAutoCompletePopup() {
+        return popupMenu;
     }
 
     /**
@@ -1610,6 +1640,9 @@ public class JEditTextArea extends JComponent {
 
     protected List<ErrorLine> errors;
 
+    protected List<String> foundSubroutines;
+    protected List<Integer> tabSubroutinesIndex;
+
     protected void fireCaretEvent() {
         Object[] listeners = listenerList.getListenerList();
         for (int i = listeners.length - 2; i >= 0; i--) {
@@ -2108,7 +2141,7 @@ public class JEditTextArea extends JComponent {
         // Look for error tooltip
         for (ErrorLine errorLine : getErrorInLines(line + 1)) {
             int offset = xToOffset(line, x);
-            if (offset >= errorLine.errorStart() && offset < errorLine.errorStart() + errorLine.errorEnd()) {
+            if (offset >= errorLine.errorStart() - 1 && offset < errorLine.errorStart() + errorLine.errorEnd()) {
                 result = "<html>";
                 result += (errorLine.isWarning() ? "<b>Warning:</b> " : "<b>Error:</b> ") + errorLine.error();
                 result += "</html>";
@@ -2203,6 +2236,35 @@ public class JEditTextArea extends JComponent {
                     matches = tokenMarker.getTokenExactMatchHelp(tokenAtOffset, tokenText);
                 } else {
                     matches = tokenMarker.getTokenPrefixMatchHelp(lineSegment.toString(), tokenList, tokenAtOffset, tokenText);
+                }
+                // Look for subroutines
+                if (matches == null) matches = new ArrayList<>();
+                String firstTokenText = lineSegment.toString().trim().split(" ")[0];
+                List<Instruction> instructions = Globals.instructionSet.matchOperator(firstTokenText);
+                if (instructions != null && !instructions.isEmpty()) {
+                    for (Instruction instruction : instructions) {
+                        if (instruction.getExampleFormat().contains("label")) {
+                            int labelIndex = 0;
+                            for (String part : instruction.getExampleFormat().split(",")) {
+                                labelIndex++;
+                                if (part.contains("label")) {
+                                    break;
+                                }
+                            }
+                            int currentIndex = (int) getLineText(line).chars().filter(c -> c == ',').count() + 1;
+                            if (currentIndex == labelIndex) {
+                                findSubroutines();
+                                String tokenTextNoComma = tokenText.replaceAll("(\\s|,)*", "");
+                                for (String subroutineName : foundSubroutines) {
+                                    subroutineName = subroutineName.substring(0, subroutineName.length() - 1);
+                                    if (subroutineName.contains(tokenTextNoComma)) {
+                                        matches.add(new PopupHelpItem(tokenTextNoComma, subroutineName, "(Subroutine)",
+                                                tokenText.contains(subroutineName)));
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -30,7 +30,7 @@ import java.util.Hashtable;
  * handler, but doesn't actually do any key binding logic. It is up
  * to the implementations of this class to do so.
  *
- * @author Slava Pestov
+ * @author Slava Pestov, Meister Reporter for new actions and modifications on existing ones
  * @version $Id: InputHandler.java,v 1.14 1999/12/13 03:40:30 sp Exp $
  *          <p>
  *          08/12/2002	Clipboard actions	(Oliver Henning)
@@ -658,45 +658,51 @@ public abstract class InputHandler extends KeyAdapter {
     public static class insert_break implements ActionListener {
         public void actionPerformed(ActionEvent evt) {
             JEditTextArea textArea = getTextArea(evt);
-
-            if (!textArea.isEditable()) {
-                textArea.getToolkit().beep();
-                return;
+            if (textArea != null) {
+                if (textArea.isPopupVisible()) {
+                    textArea.getAutoCompletePopup().setVisible(false);
+                } else {
+                    if (!textArea.isEditable()) {
+                        textArea.getToolkit().beep();
+                        return;
+                    }
+                    // AutoIndent feature added DPS 31-Dec-2010
+                    textArea.setSelectedText("\n" + textArea.getAutoIndent());
+                }
             }
-            // AutoIndent feature added DPS 31-Dec-2010
-            textArea.setSelectedText("\n" + textArea.getAutoIndent());
         }
     }
 
     public static class insert_tab implements ActionListener {
         public void actionPerformed(ActionEvent evt) {
             JEditTextArea textArea = getTextArea(evt);
-
-            if (!textArea.isEditable()) {
-                textArea.getToolkit().beep();
-                return;
-            }
-
-            int startOffset = textArea.getSelectionStart();
-            int startLine = textArea.getSelectionStartLine();
-            int startLineOffset = textArea.getLineStartOffset(startLine);
-            int endOffset = textArea.getSelectionEnd();
-            int endLine = textArea.getSelectionEndLine();
-            int endLineOffset = textArea.getLineEndOffset(endLine);
-
-            if (startLineOffset != endLineOffset && startLine != endLine) {
-                String text = textArea.getText();
-                String selected = text.substring(startLineOffset, endLineOffset - 1);
-                String prefixed = TextUtilities.addLinePrefixes(selected, "\t");
-
-                try {
-                    textArea.document.replace(startLineOffset, endLineOffset - startLineOffset - 1, prefixed, null);
-                } catch (BadLocationException bl) {
-                    bl.printStackTrace();
+            if (textArea != null && !textArea.isPopupVisible()) {
+                if (!textArea.isEditable()) {
+                    textArea.getToolkit().beep();
+                    return;
                 }
-                textArea.select(startOffset + 1, endOffset + (prefixed.length() - selected.length()));
-            } else {
-                textArea.overwriteSetSelectedText("\t");
+
+                int startOffset = textArea.getSelectionStart();
+                int startLine = textArea.getSelectionStartLine();
+                int startLineOffset = textArea.getLineStartOffset(startLine);
+                int endOffset = textArea.getSelectionEnd();
+                int endLine = textArea.getSelectionEndLine();
+                int endLineOffset = textArea.getLineEndOffset(endLine);
+
+                if (startLineOffset != endLineOffset && startLine != endLine) {
+                    String text = textArea.getText();
+                    String selected = text.substring(startLineOffset, endLineOffset - 1);
+                    String prefixed = TextUtilities.addLinePrefixes(selected, "\t");
+
+                    try {
+                        textArea.document.replace(startLineOffset, endLineOffset - startLineOffset - 1, prefixed, null);
+                    } catch (BadLocationException bl) {
+                        bl.printStackTrace();
+                    }
+                    textArea.select(startOffset + 1, endOffset + (prefixed.length() - selected.length()));
+                } else {
+                    textArea.overwriteSetSelectedText("\t");
+                }
             }
         }
     }
@@ -799,27 +805,36 @@ public abstract class InputHandler extends KeyAdapter {
 
         public void actionPerformed(ActionEvent evt) {
             JEditTextArea textArea = getTextArea(evt);
-            int caret = textArea.getCaretPosition();
-            int line = textArea.getCaretLine();
+            if (textArea != null) {
+                if (textArea.isPopupVisible()) {
+                    // If the popup menu is visible simulate the down key press on the popup itself
+                    KeyEvent keyEvent = new KeyEvent(textArea.getAutoCompletePopup(), KeyEvent.KEY_PRESSED, 0, 0,
+                            KeyEvent.VK_DOWN, '\0');
+                    textArea.getAutoCompletePopup().dispatchEvent(keyEvent);
+                } else {
+                    int caret = textArea.getCaretPosition();
+                    int line = textArea.getCaretLine();
 
-            if (line == textArea.getLineCount() - 1) {
-                textArea.getToolkit().beep();
-                return;
+                    if (line == textArea.getLineCount() - 1) {
+                        textArea.getToolkit().beep();
+                        return;
+                    }
+
+                    int magic = textArea.getMagicCaretPosition();
+                    if (magic == -1) {
+                        magic = textArea.offsetToX(line,
+                                caret - textArea.getLineStartOffset(line));
+                    }
+
+                    caret = textArea.getLineStartOffset(line + 1)
+                            + textArea.xToOffset(line + 1, magic);
+                    if (select)
+                        textArea.select(textArea.getMarkPosition(), caret);
+                    else
+                        textArea.setCaretPosition(caret);
+                    textArea.setMagicCaretPosition(magic);
+                }
             }
-
-            int magic = textArea.getMagicCaretPosition();
-            if (magic == -1) {
-                magic = textArea.offsetToX(line,
-                        caret - textArea.getLineStartOffset(line));
-            }
-
-            caret = textArea.getLineStartOffset(line + 1)
-                    + textArea.xToOffset(line + 1, magic);
-            if (select)
-                textArea.select(textArea.getMarkPosition(), caret);
-            else
-                textArea.setCaretPosition(caret);
-            textArea.setMagicCaretPosition(magic);
         }
     }
 
@@ -930,27 +945,36 @@ public abstract class InputHandler extends KeyAdapter {
 
         public void actionPerformed(ActionEvent evt) {
             JEditTextArea textArea = getTextArea(evt);
-            int caret = textArea.getCaretPosition();
-            int line = textArea.getCaretLine();
+            if (textArea != null) {
+                if (textArea.isPopupVisible()) {
+                    // If the popup menu is visible simulate the up key press on the popup itself
+                    KeyEvent keyEvent = new KeyEvent(textArea.getAutoCompletePopup(), KeyEvent.KEY_PRESSED, 0, 0,
+                            KeyEvent.VK_UP, '\0');
+                    textArea.getAutoCompletePopup().dispatchEvent(keyEvent);
+                } else {
+                    int caret = textArea.getCaretPosition();
+                    int line = textArea.getCaretLine();
 
-            if (line == 0) {
-                textArea.getToolkit().beep();
-                return;
+                    if (line == 0) {
+                        textArea.getToolkit().beep();
+                        return;
+                    }
+
+                    int magic = textArea.getMagicCaretPosition();
+                    if (magic == -1) {
+                        magic = textArea.offsetToX(line,
+                                caret - textArea.getLineStartOffset(line));
+                    }
+
+                    caret = textArea.getLineStartOffset(line - 1)
+                            + textArea.xToOffset(line - 1, magic);
+                    if (select)
+                        textArea.select(textArea.getMarkPosition(), caret);
+                    else
+                        textArea.setCaretPosition(caret);
+                    textArea.setMagicCaretPosition(magic);
+                }
             }
-
-            int magic = textArea.getMagicCaretPosition();
-            if (magic == -1) {
-                magic = textArea.offsetToX(line,
-                        caret - textArea.getLineStartOffset(line));
-            }
-
-            caret = textArea.getLineStartOffset(line - 1)
-                    + textArea.xToOffset(line - 1, magic);
-            if (select)
-                textArea.select(textArea.getMarkPosition(), caret);
-            else
-                textArea.setCaretPosition(caret);
-            textArea.setMagicCaretPosition(magic);
         }
     }
 

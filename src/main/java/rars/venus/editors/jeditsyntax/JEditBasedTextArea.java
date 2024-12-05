@@ -21,13 +21,8 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -51,9 +46,6 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
     private boolean isControlDown = false;
     private CompoundEdit compoundEdit;
     private JEditBasedTextArea sourceCode;
-
-    private List<String> foundSubroutines;
-    private List<Integer> tabSubroutinesIndex;
 
 
     public JEditBasedTextArea(EditPane editPain, JComponent lineNumbers) {
@@ -179,23 +171,6 @@ public class JEditBasedTextArea extends JEditTextArea implements TextEditingArea
             return "";
         }
         return lineText.substring(beginning + 1, wordEnd);
-    }
-
-    private void findSubroutines() {
-        foundSubroutines.clear();
-        tabSubroutinesIndex.clear();
-        EditTabbedPane tabPane = (EditTabbedPane) Globals.getGui().getMainPane().getEditTabbedPane();
-        for (String path : tabPane.getOpenFilePaths()) {
-            EditPane editPane = tabPane.getEditPaneForFile(path);
-            Pattern p = Pattern.compile("(\\w)+:");
-            editPane.getSource().replaceAll("#(.*)", "").lines().forEach(line -> {
-                Matcher matcher = p.matcher(line);
-                while (matcher.find()) {
-                    foundSubroutines.add(matcher.group());
-                    tabSubroutinesIndex.add(Arrays.asList(tabPane.getOpenFilePaths()).indexOf(path));
-                }
-            });
-        }
     }
 
     public void setFont(Font f) {
