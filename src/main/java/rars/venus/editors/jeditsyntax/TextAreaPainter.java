@@ -37,7 +37,7 @@ import java.util.List;
  * The text area repaint manager. It performs double buffering and paints
  * lines of text.
  *
- * @author Slava Pestov
+ * @author Slava Pestov, Meister Reporter for Live Syntax Checking
  * @version $Id: TextAreaPainter.java,v 1.24 1999/12/13 03:40:30 sp Exp $
  */
 public class TextAreaPainter extends JComponent implements TabExpander {

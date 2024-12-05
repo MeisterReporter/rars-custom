@@ -73,7 +73,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * be open at a time.  With 4.0 came the multifile (pane, tab) editor, and existing
  * duties were split between EditPane and the new EditTabbedPane class.
  *
- * @author Sanderson and Bumgarner
+ * @author Sanderson, Bumgarner, Meister Reporter for Live Syntax Checking
  */
 
 public class EditPane extends JPanel implements Observer {

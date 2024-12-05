@@ -93,7 +93,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /**
  * Top level container for Venus GUI.
  *
- * @author Sanderson and Team JSpim, Theme Menu added by Meister Reporter
+ * @author Sanderson, Team JSpim, Theme Menu added by Meister Reporter
  **/
 
 	  /* Heavily modified by Pete Sanderson, July 2004, to incorporate JSPIMMenu and JSPIMToolbar

@@ -104,7 +104,7 @@ import java.util.Vector;
  *     + "    }\n"
  *     + "}");</pre>
  *
- * @author Slava Pestov
+ * @author Slava Pestov, Meister Reporter for Auto Formatting and Live Syntax Checking
  * @version $Id: JEditTextArea.java,v 1.36 1999/12/13 03:40:30 sp Exp $
  */
 public class JEditTextArea extends JComponent {
