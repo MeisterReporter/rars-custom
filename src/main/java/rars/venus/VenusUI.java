@@ -135,7 +135,7 @@ public class VenusUI extends JFrame {
     private JCheckBoxMenuItem settingsLabel, settingsPopupInput, settingsValueDisplayBase, settingsAddressDisplayBase,
             settingsExtended, settingsAssembleOnOpen, settingsAssembleAll, settingsAssembleOpen, settingsWarningsAreErrors,
             settingsStartAtMain, settingsProgramArguments, settingsSelfModifyingCode, settingsRV64, settingsDeriveCurrentWorkingDirectory;
-    private JMenuItem settingsExceptionHandler, settingsEditor, settingsHighlighting, settingsMemoryConfiguration, settingsTheme;
+    private JMenuItem settingsExceptionHandler, settingsEditor, settingsHighlighting, settingsMemoryConfiguration, settingsTheme, settingsEditMacros;
     private JMenuItem helpHelp, helpAbout;
 
     // components of the toolbar
@@ -160,7 +160,7 @@ public class VenusUI extends JFrame {
             settingsExtendedAction, settingsAssembleOnOpenAction, settingsAssembleOpenAction, settingsAssembleAllAction,
             settingsWarningsAreErrorsAction, settingsStartAtMainAction, settingsProgramArgumentsAction,
             settingsExceptionHandlerAction, settingsEditorAction, settingsHighlightingAction, settingsMemoryConfigurationAction,
-            settingsSelfModifyingCodeAction, settingsRV64Action, settingsDeriveCurrentWorkingDirectoryAction;
+            settingsSelfModifyingCodeAction, settingsRV64Action, settingsDeriveCurrentWorkingDirectoryAction, settingsEditMacrosAction;
     private Action helpHelpAction, helpAboutAction;
 
 
@@ -554,6 +554,14 @@ public class VenusUI extends JFrame {
                     null, "View and modify memory segment base addresses for the simulated processor",
                     null, null
             );
+            settingsEditMacrosAction = new GuiAction("Edit Macros", null, "Define code shortcuts called macros.",
+                    null, null) {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    super.actionPerformed(e);
+                    new CreateCustomMacrosDialog(mainUI, "Define custom Macros", true);
+                }
+            };
 
             helpHelpAction = new HelpHelpAction("Help", loadIcon("Help22.png"),
                     "Help", KeyEvent.VK_H, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), mainUI);
@@ -751,6 +759,7 @@ public class VenusUI extends JFrame {
                 ThemeSettings.showSettingsDialog(this);
             }
         });
+        settingsEditMacros = new JMenuItem(settingsEditMacrosAction);
 
         settings.add(settingsLabel);
         settings.add(settingsProgramArguments);
@@ -775,6 +784,7 @@ public class VenusUI extends JFrame {
         settings.add(settingsMemoryConfiguration);
         settings.add(settingsThemeSelect);
         settings.add(settingsTheme);
+        settings.add(settingsEditMacros);
 
         helpHelp = new JMenuItem(helpHelpAction);
         helpHelp.setIcon(loadIcon("Help16.png"));//"Help16.gif"));

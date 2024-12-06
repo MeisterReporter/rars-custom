@@ -11,6 +11,7 @@ package rars.venus.editors.jeditsyntax;
 
 import rars.Globals;
 import rars.Settings;
+import rars.macros.CustomMacro;
 import rars.riscv.Instruction;
 import rars.venus.EditPane;
 import rars.venus.EditTabbedPane;
@@ -244,7 +245,7 @@ public class JEditTextArea extends JComponent {
     }
 
     public boolean isPopupVisible() {
-        return popupMenu != null && popupMenu.isVisible();
+        return popupMenu != null && popupMenu.isVisible() && popupMenu.getSubElements().length > 0;
     }
 
     public JPopupMenu getAutoCompletePopup() {
@@ -2266,6 +2267,22 @@ public class JEditTextArea extends JComponent {
                         }
                     }
                 }
+                // Look for Macros
+                for (CustomMacro macro : Globals.getSettings().loadAllMacros()) {
+                    if (!firstTokenText.isBlank() && macro.getName().contains(firstTokenText)) {
+                        StringBuilder macroExample = new StringBuilder(macro.getName() + " ");
+                        for (int i = 0; i < macro.getNumberOfArguments(); i++) {
+                            macroExample.append(i > 0 ? ", " : "");
+                            switch (macro.getArgumentTypes().get(i)) {
+                                case CustomMacro.ARG_LABEL -> macroExample.append("label").append(i);
+                                case CustomMacro.ARG_REGISTER -> macroExample.append("t").append(i);
+                                case CustomMacro.ARG_NUMBER -> macroExample.append(i);
+                            }
+                        }
+                        matches.add(new PopupHelpItem(tokenText, macroExample.toString(), "(Custom Defined Macro)",
+                                tokenText.contains(macro.getName())));
+                    }
+                }
             }
         }
         return matches;
@@ -2342,7 +2359,11 @@ public class JEditTextArea extends JComponent {
 
         public PopupHelpActionListener(String tokenText, String text) {
             this.tokenText = tokenText;
-            this.text = text.split(" ")[0];
+            // TODO: Review this for issues with completion of instructions that have operands
+            // Review 1: I can spot no issues with it. Instructions will only paste without params as before.
+            // While macros will paste with params.
+            // this.text = text.split(" ")[0];
+            this.text = text;
         }
 
         // Completion action will insert either a tab or space character following the

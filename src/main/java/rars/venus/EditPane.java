@@ -90,6 +90,7 @@ public class EditPane extends JPanel implements Observer {
     private FileStatus fileStatus;
 
     private boolean isSyntaxDirty;
+    private boolean checkSyntaxErrors;
 
     /**
      * Constructor for the EditPane class.
@@ -106,6 +107,7 @@ public class EditPane extends JPanel implements Observer {
         this.fileStatus = new FileStatus();
         lineNumbers = new JLabel();
         this.isSyntaxDirty = true;
+        this.checkSyntaxErrors = true;
 
         if (Globals.getSettings().getBooleanSetting(Settings.Bool.GENERIC_TEXT_EDITOR)) {
             this.sourceCode = new GenericTextArea(this, lineNumbers);
@@ -219,7 +221,7 @@ public class EditPane extends JPanel implements Observer {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (isSyntaxDirty) {
+                if (isSyntaxDirty && checkSyntaxErrors) {
                     checkForErrors();
                 }
             }
@@ -382,6 +384,10 @@ public class EditPane extends JPanel implements Observer {
             }
         }
         dir.delete();
+    }
+
+    public void setCheckSyntaxErrors(boolean checkSyntaxErrors) {
+        this.checkSyntaxErrors = checkSyntaxErrors;
     }
 
     /**

@@ -9,6 +9,7 @@
 
 package rars.venus.editors.jeditsyntax;
 
+import rars.macros.CustomMacroInserter;
 import rars.riscv.RiscVFormatter;
 
 import javax.swing.JPopupMenu;
@@ -659,6 +660,11 @@ public abstract class InputHandler extends KeyAdapter {
         public void actionPerformed(ActionEvent evt) {
             JEditTextArea textArea = getTextArea(evt);
             if (textArea != null) {
+                // Functionality for macros
+                if (CustomMacroInserter.isLineAMacro(textArea.getLineText(textArea.getCaretLine())) != null) {
+                    CustomMacroInserter.replaceMacro(textArea);
+                }
+
                 if (textArea.isPopupVisible()) {
                     textArea.getAutoCompletePopup().setVisible(false);
                 } else {

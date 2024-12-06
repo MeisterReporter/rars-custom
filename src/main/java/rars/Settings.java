@@ -1,5 +1,6 @@
 package rars;
 
+import rars.macros.CustomMacro;
 import rars.util.Binary;
 import rars.util.EditorFont;
 import rars.venus.editors.jeditsyntax.SyntaxStyle;
@@ -8,7 +9,9 @@ import rars.venus.editors.jeditsyntax.SyntaxUtilities;
 import javax.swing.UIManager;
 import java.awt.Color;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Observable;
 import java.util.StringTokenizer;
 import java.util.prefs.BackingStoreException;
@@ -220,8 +223,9 @@ public class Settings extends Observable {
 
     public static final int THEME = 7;
     public static final int CUSTOM_THEME = 8;
+    public static final int MACROS = 9;
     // Match the above by position.
-    private static final String[] stringSettingsKeys = {"ExceptionHandler", "TextColumnOrder", "LabelSortState", "MemoryConfiguration", "CaretBlinkRate", "EditorTabSize", "EditorPopupPrefixLength", "Theme", "CustomTheme"};
+    private static final String[] stringSettingsKeys = {"ExceptionHandler", "TextColumnOrder", "LabelSortState", "MemoryConfiguration", "CaretBlinkRate", "EditorTabSize", "EditorPopupPrefixLength", "Theme", "CustomTheme", "Macros"};
 
     /**
      * Last resort default values for String settings;
@@ -229,7 +233,7 @@ public class Settings extends Observable {
      * If you wish to change, do so before instantiating the Settings object.
      * Must match key by list position.
      */
-    private static String[] defaultStringSettingsValues = {"", "0 1 2 3 4", "0", "", "500", "8", "2", "Metal", ""};
+    private static String[] defaultStringSettingsValues = {"", "0 1 2 3 4", "0", "", "500", "8", "2", "Metal", "", ""};
 
 
     // FONT SETTINGS.  Each array position has associated name.
@@ -459,6 +463,26 @@ public class Settings extends Observable {
         initialize();
     }
 
+    public void saveMacro(CustomMacro macro) {
+        if (!stringSettingsValues[Settings.MACROS].contains(macro.getName())) {
+            setStringSetting(Settings.MACROS, stringSettingsValues[Settings.MACROS] + macro.getName() + ",");
+        }
+        preferences.put(macro.getName(), macro.toSaveString());
+    }
+
+    public CustomMacro loadMacro(String macroName) {
+        return CustomMacro.fromSaveString(preferences.get(macroName, ""));
+    }
+
+    public List<CustomMacro> loadAllMacros() {
+        ArrayList<CustomMacro> macros = new ArrayList<>();
+        for (String name : stringSettingsValues[Settings.MACROS].split(",")) {
+            if (!name.isEmpty()) {
+                macros.add(loadMacro(name));
+            }
+        }
+        return macros;
+    }
 
     /* **************************************************************************
      This section contains all code related to syntax highlighting styles settings.

@@ -1,6 +1,7 @@
 package rars;
 
 import rars.assembler.SymbolTable;
+import rars.macros.CustomMacro;
 import rars.riscv.InstructionSet;
 import rars.riscv.SyscallNumberOverride;
 import rars.riscv.hardware.Memory;
@@ -9,6 +10,7 @@ import rars.venus.VenusUI;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.locks.ReentrantLock;
@@ -137,6 +139,10 @@ public class Globals {
      * Exit code -- useful with SYSCALL 17 when running from command line (not GUI)
      */
     public static int exitCode = 0;
+    /**
+     * List of defined custom macros
+     */
+    public static List<CustomMacro> CUSTOM_MACROS;
 
     public static boolean runSpeedPanelExists = false;
 
@@ -171,6 +177,7 @@ public class Globals {
             settings = new Settings();
             instructionSet = new InstructionSet();
             instructionSet.populate();
+            CUSTOM_MACROS = settings.loadAllMacros();
             initialized = true;
             debug = false;
             memory.clear(); // will establish memory configuration from setting
