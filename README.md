@@ -7,12 +7,20 @@ an effective development environment for people getting started with RISC-V.
 
 ## New-Features
 
+- **Themes:**
   - Multiple Themes, including Darklaf (a customizable theme)
+- **Tabs**
   - Closing files via the tab
   - Reordering tabs via drag and drop
+- **Editor**
+  - Macros: Define your own code shortcuts with parameters. Write your macro and press enter to replace it with the code snippet.
+  - Live syntax and error checker. Underlines errors and warnings in the editor
   - Jump directly to used subroutines by clicking on the name (CTRL + Click)
+  - Suggest subroutines in the autocomplete popup
+- **Other**
   - Support for opening multiple files at once
   - Created new icons, which where missing
+  - Fixed Bugs & Updated to newer Java Version (21)
 
 ## Features
 
@@ -29,12 +37,12 @@ Documentation for supported [instructions](https://github.com/TheThirdOne/rars/w
 
 ## Download
 
-RARS is distributed as an executable jar. You will need at least Java 8 to run it. 
+RARS is distributed as an executable jar. You will need at least Java 21 to run it. 
 
-The latest stable release can be found [here](https://github.com/TheThirdOne/rars/releases/latest), a release with the latest developments can be found on the [continuous release](https://github.com/TheThirdOne/rars/releases/tag/continuous), and the [releases page](https://github.com/TheThirdOne/rars/releases) contains all previous stable releases with patch notes.
+The latest stable release can be found [here](https://github.com/MeisterReporter/rars-custom/releases/latest), the latest developments can be found on the [continuous release](https://github.com/MeisterReporter/rars-custom), and the [releases page](https://github.com/MeisterReporter/rars-custom/releases/) contains all previous stable releases with patch notes.
 
 Alternatively, if you wish to make your own jar and/or modify the code, you
-should clone the repo with `git clone https://github.com/TheThirdOne/rars --recursive`.
+should clone the repo with `git clone https://github.com/MeisterReporter/rars-custom.git --recursive`.
 Running the script `./build-jar.sh` on a Unix system will build `rars.jar`.
 
 ## Screenshot
