@@ -51,11 +51,15 @@ public class HelpAboutAction extends GuiAction {
         JOptionPane.showMessageDialog(mainUI,
                 "RARS " + Globals.version + "    Copyright " + Globals.copyrightYears + "\n" +
                         Globals.copyrightHolders + "\n" +
+                        "Modified by Meister Reporter\n" +
                         "RARS is the RISC-V Assembler and Runtime Simulator.\n\n" +                        "Toolbar and menu icons are from:\n" +
                         "  *  Tango Desktop Project (tango.freedesktop.org),\n" +
                         "  *  glyFX (www.glyfx.com) Common Toolbar Set,\n" +
                         "  *  KDE-Look (www.kde-look.org) crystalline-blue-0.1,\n" +
-                        "  *  Icon-King (www.icon-king.com) Nuvola 1.0.",
+                        "  *  Icon-King (www.icon-king.com) Nuvola 1.0.\n" +
+                        "  *  Meister Reporter.\n\n" +
+                        "New Themes:\n" +
+                        "  *  Darklaf by WeisJ (github.com/weisJ/darklaf)",
                 "About Rars",
                 JOptionPane.INFORMATION_MESSAGE,
                 new ImageIcon("images/RISC-V.png"));
